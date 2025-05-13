@@ -1,0 +1,156 @@
+pub mod declarations {
+    use clap::Subcommand;
+    #[derive(Subcommand)]
+    pub enum ShowCmd {
+        Location,
+        Inventory,
+        Systems,
+        System,
+        Waypoints,
+        Waypoint,
+        Contracts,
+        Agents,
+        Factions,
+
+    }
+
+    #[derive(Subcommand)]
+    pub enum WhereamiCmd {
+        Location,
+        Inventory,
+        Systems,
+        System,
+        Waypoints,
+        Waypoint,
+        Contracts,
+        Agents,
+        Factions,
+
+    }
+
+    #[derive(Subcommand)]
+    pub enum ContractCmd {
+        Current,
+        Negotiate {
+            #[arg(short, long)]
+            contract_id: String
+        },
+        Accept {
+            #[arg(short, long)]
+            contract_id: String
+        },
+    }
+
+
+    #[derive(Subcommand)]
+    pub enum AgentCmd {
+        Activate {
+            #[arg(short, long)]
+            agent_id: String
+        },
+        Deactivate,
+        Show {
+            #[arg(short, long)] // TODO: Add default vault to get currently selected Agent to show it
+            agent_id: String
+        },
+        ShowAll,
+        Delete {
+            #[arg(short, long)]
+            agent_id: String
+        }
+    }
+
+    #[derive(Subcommand)]
+    pub enum NavigateCmd {
+        Orbit,
+        Dock,
+        Navigate,
+        SetFlightMode,
+        Warp,
+        Jump,
+        Refuel
+    }
+
+    #[derive(Subcommand)]
+    pub enum FactionCmd {
+        ShowAllFactions
+    }
+}
+
+
+pub mod definitions {
+    use anyhow::Result;
+    use crate::services::contract::ContractService;
+    use crate::services::agent::AgentService;
+    use crate::Config;
+    use super::declarations::{ShowCmd, ContractCmd, AgentCmd, NavigateCmd, FactionCmd};
+
+    pub fn whereami(settings: &Config) -> Result<()> {
+        println!("Handling show whereami");
+        Ok(())
+    }
+
+    pub fn greet(name: &str) -> Result<()> {
+        println!("Fuck you, {name}");
+        Ok(())
+    }
+
+    pub fn show(target: &ShowCmd, contract_svc: &ContractService, agent_svc: &AgentService) -> Result<()> {
+        match target {
+            ShowCmd::Location => println!("Handling show location"),
+            ShowCmd::Inventory => println!("Handling show inventory"),
+            ShowCmd::Systems => println!("Handling show all systems"),
+            ShowCmd::System => println!("Handling showing system"),
+            ShowCmd::Waypoints => println!("Handling show waypoint"),
+            ShowCmd::Waypoint => println!("Handling showing single waypoint"),
+            ShowCmd::Contracts => println!("Handling show contracts"),
+            ShowCmd::Agents => println!("Handling show agents"),
+            ShowCmd::Factions => println!("Handling show factions")
+        }
+        Ok(())
+    }
+
+    pub fn contract_action(contract_svc: &ContractService, target: &ContractCmd) -> Result<()> {
+        match target {
+            ContractCmd::Accept { contract_id} => contract_svc.accept_contract(contract_id),
+            ContractCmd::Negotiate { contract_id} => contract_svc.negotiate_contract(contract_id),
+            ContractCmd::Current => {
+                // let agent_id: String = find_current_agent();
+                let current_contracts = contract_svc.show_current_contracts();
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<()> {
+        match target {
+            AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id),
+            AgentCmd::Deactivate => agent_svc.deactivate_agent(),
+            AgentCmd::Delete { agent_id} => agent_svc.delete_agent(agent_id),
+            AgentCmd::Show { agent_id } => agent_svc.find_agent_by_id(agent_id),
+            AgentCmd::ShowAll => println!("Handling showing all agents")
+        }
+        Ok(())
+    }
+
+    pub fn navigate(target: &NavigateCmd) -> Result<()> {
+        match target {
+            NavigateCmd::Orbit => println!("Handling navigating to orbit"),
+            NavigateCmd::Dock => println!("Handling navigating"),
+            NavigateCmd::Jump => println!("Handling jump"),
+            NavigateCmd::Navigate => println!("Handling navigation"),
+            NavigateCmd::Refuel => println!("Handling refueling"),
+            NavigateCmd::SetFlightMode => println!("Handling set flight mode"),
+            NavigateCmd::Warp => println!("Handling Warp initialization")
+        }
+        Ok(())
+    }
+
+    pub fn faction_action(target: &FactionCmd) -> Result<()> {
+        match target {
+            FactionCmd::ShowAllFactions => println!("Handling show all factions")
+        }
+        Ok(())
+    }
+}
