@@ -931,6 +931,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
+name = "owo-colors"
+version = "4.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26995317201fa17f3656c36716aed4a7c81743a9634ac4c99c0eeda495db0cec"
+
+[[package]]
 name = "parking_lot"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1486,8 +1492,10 @@ dependencies = [
  "clap",
  "figment",
  "figment_file_env_provider",
+ "owo-colors",
  "reqwest",
  "serde",
+ "serde_json",
  "strum",
  "strum_macros",
  "thiserror",
