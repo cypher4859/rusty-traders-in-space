@@ -1,6 +1,11 @@
 pub mod declarations {
     use clap::Subcommand;
     #[derive(Subcommand)]
+    pub enum ServerCmd {
+        Health
+    }
+
+    #[derive(Subcommand)]
     pub enum ShowCmd {
         Location,
         Inventory,
@@ -95,8 +100,15 @@ pub mod definitions {
     use crate::{model::faction_model::Faction, services::contract::ContractService};
     use crate::services::agent::AgentService;
     use crate::services::faction::{self, FactionService};
-    use crate::Config;
-    use super::declarations::{ShowCmd, ContractCmd, AgentCmd, NavigateCmd, FactionCmd};
+    use crate::{Config, ServerService};
+    use super::declarations::{AgentCmd, ContractCmd, FactionCmd, NavigateCmd, ServerCmd, ShowCmd};
+
+    pub async fn server(target: &ServerCmd, server_svc: &ServerService) -> Result<(), ()> {
+        match target {
+            ServerCmd::Health => server_svc.get_status().await?,
+        }
+        Ok(())
+    }
 
     pub fn whereami(settings: &Config) -> Result<()> {
         println!("Handling show whereami");

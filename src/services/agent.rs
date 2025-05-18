@@ -18,7 +18,6 @@ impl AgentService {
 
     pub async fn register_new_agent(&self, symbol: &String, faction: &String, email: &Option<String>) -> anyhow::Result<(), ()> {
         let new_agent: Result<RegisterDataDTO, anyhow::Error> = self._register_new_agent(symbol, faction, email).await;
-        println!("Result: {new_agent:?}");
         Ok(())
     }
 

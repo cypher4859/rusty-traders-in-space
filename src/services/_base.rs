@@ -1,4 +1,7 @@
 use reqwest::Client;
+use anyhow::Result;
+use owo_colors::OwoColorize;          // cargo add owo-colors
+use std::fmt::Debug;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Serialize, de::DeserializeOwned};   // ← blanket trait for any owned deserialisable type
 use std::sync::Arc;
@@ -30,12 +33,49 @@ impl SpaceTradersService {
         })
     }
 
-    pub async fn get<T>(&self, endpoint: &String) -> anyhow::Result<T> where T: DeserializeOwned {
-        self.send_request::<T, ()>(endpoint, SupportedHttpMethods::Get, None).await
+    pub fn display_api_result<T>(&self, label: &str, outcome: &Result<T>)
+    where
+        T: Serialize + Debug,
+    {
+        self._display_api_result_in_json::<T>(label, outcome);
     }
 
-    pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned, B: Serialize + ?Sized {
-        self.send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body).await
+    pub fn _display_api_result_in_json<T>(&self, label: &str, outcome: &Result<T>)
+    where 
+        T: Serialize + Debug
+    {
+        match outcome {
+            Ok(val) => {
+                println!(
+                    "{}\n{}",
+                    format!("✔ {label} OK").green().bold(),
+                    serde_json::to_string_pretty(val)
+                        .unwrap_or_else(|_| format!("{:#?}", val))
+                );
+            }
+            Err(e) => {
+                println!("{}\n{e:?}", format!("✘ {label} FAILED").red().bold());
+            }
+        }
+    }
+
+    pub async fn get<T>(&self, endpoint: &String) -> Result<T>
+    where
+        T: DeserializeOwned + Serialize + Debug,   // <- same bounds
+    {
+        let result = self
+            .send_request::<T, ()>(endpoint, SupportedHttpMethods::Get, None)
+            .await;
+
+        self.display_api_result(&format!("GET {endpoint}"), &result);
+        result                                   // propagate to caller
+    }
+
+    pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug, B: Serialize + ?Sized {
+        let result = self.send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body).await;
+        self.display_api_result(&format!("POST {endpoint}"), &result);
+        result
+
     }
 
     pub async fn send_request<T, B>(&self, endpoint: &String, http_method: SupportedHttpMethods, body: Option<&B>) -> anyhow::Result<T> where

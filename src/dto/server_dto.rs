@@ -1,0 +1,67 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ServerStatusDTO {
+    pub status:      String,
+    pub version:     String,
+    #[serde(rename = "resetDate")]
+    pub reset_date:  String,
+    pub description: String,
+
+    pub stats:         StatsDTO,
+    pub leaderboards:  LeaderboardsDTO,
+    #[serde(rename = "serverResets")]
+    pub server_resets: ServerResetsDTO,
+    pub announcements: Vec<AnnouncementDTO>,
+    pub links:         Vec<LinkDTO>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatsDTO {
+    pub accounts:  u64,
+    pub agents:    u64,
+    pub ships:     u64,
+    pub systems:   u64,
+    pub waypoints: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LeaderboardsDTO {
+    #[serde(rename = "mostCredits")]
+    pub most_credits:         Vec<CreditsEntryDTO>,
+    #[serde(rename = "mostSubmittedCharts")]
+    pub most_submitted_charts: Vec<ChartsEntryDTO>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreditsEntryDTO {
+    #[serde(rename = "agentSymbol")]
+    pub agent_symbol: String,
+    pub credits:      i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ChartsEntryDTO {
+    #[serde(rename = "agentSymbol")]
+    pub agent_symbol: String,
+    #[serde(rename = "chartCount")]
+    pub chart_count:  u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ServerResetsDTO {
+    pub next:      String,
+    pub frequency: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AnnouncementDTO {
+    pub title: String,
+    pub body:  String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LinkDTO {
+    pub name: String,
+    pub url:  String,
+}

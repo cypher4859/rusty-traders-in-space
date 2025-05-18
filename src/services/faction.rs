@@ -29,14 +29,12 @@ impl FactionService {
         let uppercase_faction_name = faction_name.to_uppercase();
         let endpoint: String = format!("factions/{uppercase_faction_name}");
         let result: Result<FactionEnvelopeDTO, anyhow::Error> = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
-        println!("Result: {result:?}");
         Ok(())
     }
 
     async fn _show_all_factions(&self) -> Result<(), ()> {
         let endpoint: String = String::from("factions");
         let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
-        println!("Result: {result:?}");
         Ok(())
     }
 }

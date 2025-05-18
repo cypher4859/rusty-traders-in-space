@@ -5,12 +5,12 @@ use crate::dto::faction_dto::{FactionDTO};
 use crate::dto::contract_dto::ContractDTO;
 use crate::dto::ship_dto::ShipDTO;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegisterEnvelopeDTO {
     pub data: RegisterDataDTO,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegisterDataDTO {
     pub token:    String,
     pub agent:    AgentDTO,

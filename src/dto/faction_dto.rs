@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use crate::model::faction_model::{Faction, Trait, TraitSymbol, FactionSymbol};
 use anyhow::{Result, anyhow, ensure};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum FactionDataDTO {
     Single(FactionDTO),
@@ -10,7 +10,7 @@ pub enum FactionDataDTO {
 }
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FactionEnvelopeDTO {
     pub data: FactionDataDTO
 }

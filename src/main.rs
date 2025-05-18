@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use lib::ServerService;
 use tracing::{info, error};
 use lib::SpaceTradersService;
 use lib::AgentService;
@@ -20,6 +21,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    Server {
+        #[command(subcommand)]
+        target: subcommands::declarations::ServerCmd
+    },
     Whereami,
     Greet {
         #[arg(short, long, default_value = "world")]
@@ -55,6 +60,7 @@ async fn main() -> anyhow::Result<()> {
     let cfg: Arc<Config> = config_service.settings();
 
     let spacetraders_service: Arc<SpaceTradersService> = Arc::new(SpaceTradersService::new(cfg.clone()).await?);
+    let server_service: Arc<ServerService>= Arc::new(ServerService::new(spacetraders_service.clone(), cfg.clone()));
     let agent_service = Arc::new(AgentService::new(cfg.clone(), spacetraders_service.clone()));
     let contract_service = Arc::new(ContractService::new(cfg.clone(), agent_service.clone(), spacetraders_service.clone()));
     let faction_service = Arc::new(FactionService::new(cfg.clone(), spacetraders_service.clone()));
@@ -62,6 +68,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Match the CLI  command
     match cli.command {
+        Commands::Server { target } => {
+            subcommands::definitions::server(&target, &server_service);
+        }
+
         Commands::Whereami => {
             subcommands::definitions::whereami(&cfg);
         }

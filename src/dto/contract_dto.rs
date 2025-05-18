@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ContractDTO {
     pub id:            String,
     #[serde(rename = "factionSymbol")]
@@ -17,14 +17,14 @@ pub struct ContractDTO {
     pub deadline_to_accept: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ContractTermsDTO {
     pub deadline: String,
     pub payment:  PaymentDTO,
     pub deliver:  Vec<DeliverDTO>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PaymentDTO {
     #[serde(rename = "onAccepted")]
     pub on_accepted: i64,
@@ -32,7 +32,7 @@ pub struct PaymentDTO {
     pub on_fulfilled: i64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct DeliverDTO {
     #[serde(rename = "tradeSymbol")]
     pub trade_symbol: String,
