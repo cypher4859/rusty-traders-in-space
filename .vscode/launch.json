@@ -152,11 +152,10 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'spacetraders'",
+            "name": "Debug executable 'spacetraders' w/ command: faction show-all",
             "cargo": {
                 "args": [
-                    "test",
-                    "--no-run",
+                    "build",
                     "--bin=spacetraders",
                     "--package=spacetraders"
                 ],
@@ -165,7 +164,43 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["faction", "show-all"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: faction search",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["faction", "search", "--faction", "COSMIC"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Agent new",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["agent", "new", "--faction", "COSMIC", "--symbol", "devilelk669"],
             "cwd": "${workspaceFolder}"
         }
     ]
