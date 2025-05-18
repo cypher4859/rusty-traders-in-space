@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use crate::config::Config;
-use crate::SpaceTradersService;
-use crate::{AgentDTO, AgentRequestDTO};
+use crate::{RegisterDataDTO, SpaceTradersService};
+use crate::{AgentDTO, AgentRequestDTO, RegisterEnvelopeDTO};
 use crate::model::agent_model::Agent;
 
 
@@ -16,8 +16,10 @@ impl AgentService {
         Self { cfg, st }
     }
 
-    pub async fn register_new_agent(&self, symbol: &String, faction: &String, email: &String) {
-        self._register_new_agent(symbol, faction, email).await;
+    pub async fn register_new_agent(&self, symbol: &String, faction: &String, email: &Option<String>) -> anyhow::Result<(), ()> {
+        let new_agent: Result<RegisterDataDTO, anyhow::Error> = self._register_new_agent(symbol, faction, email).await;
+        println!("Result: {new_agent:?}");
+        Ok(())
     }
 
     pub fn activate_agent(&self, agent_id: &String) {
@@ -49,18 +51,18 @@ impl AgentService {
         println!("Handling listing allagents");
     }
 
-    async fn _register_new_agent(&self, symbol: &String, faction: &String, email: &String) -> anyhow::Result<Agent> {
+    async fn _register_new_agent(&self, symbol: &String, faction: &String, email: &Option<String>) -> anyhow::Result<RegisterDataDTO> {
         let endpoint: String = String::from("register");
         let agent_request: AgentRequestDTO = AgentRequestDTO { 
             symbol: symbol.clone(), 
             faction: faction.clone(), 
-            email: email.clone()
+            email: email.clone().map(|e: String| e.to_owned())
         };
-        let dto: AgentDTO = self.st.post(
+        let dto: RegisterEnvelopeDTO = self.st.post(
             &endpoint,
             Some(&AgentRequestDTO::from(agent_request))
         ).await?;
-        Ok(dto.try_into()?)
+        Ok(dto.data.try_into()?)
         
     }
 
@@ -78,50 +80,3 @@ impl AgentService {
         String::from("Fake Agent")
     }
 }
-
-// impl TryFrom<AgentDTO> for Agent {
-//     type Error = anyhow::Error;
-
-//     fn try_from(dto: AgentDTO) -> anyhow::Result<Self> {
-//         Agent::new(
-//             dto.symbol, 
-//             dto.credits, 
-//             dto.hq
-//         )
-//     }
-// }
-
-// impl From<Agent> for AgentDTO {
-//     fn from(model: Agent) -> Self {
-//         AgentDTO {
-//             account_id: String::new(), // not used outbound—leave blank or compute
-//             symbol:  model.symbol,
-//             hq: model.hq,
-//             credits: model.credits,
-//             starting_faction: model.starting_faction,
-//             ship_count: model.ship_count
-//         }
-//     }
-// }
-
-// impl TryFrom<AgentRequestDTO> for Agent {
-//     type Error = anyhow::Error;
-
-//     fn try_from(dto: AgentRequestDTO) -> anyhow::Result<Self> {
-//         Agent::new(
-//             dto.symbol, 
-//             dto.faction, 
-//             dto.email
-//         )
-//     }
-// }
-
-// impl From<Agent> for AgentRequestDTO {
-//     fn from(dto: AgentRequestDTO) -> Self {
-//         AgentRequestDTO {
-//             symbol:  dto.symbol,
-//             faction: dto.faction,
-//             email: dto.email
-//         }
-//     }
-// }

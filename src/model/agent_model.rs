@@ -1,4 +1,7 @@
+use crate::services::contract;
 use crate::AgentDTO;
+use crate::model::{Faction, Contract, Ship};
+use crate::{RegisterDataDTO, RegisterEnvelopeDTO};
 use anyhow::{Result, anyhow, ensure};
 
 #[derive(Debug, Clone)]
@@ -69,5 +72,35 @@ impl From<Agent> for AgentDTO {
             starting_faction: model.starting_faction,
             ship_count: model.ship_count
         }
+    }
+}
+
+pub struct RegisterResult {
+    pub token:      String,
+    pub agent:      Agent,
+    pub faction:    Faction,
+    pub contract:   Contract,
+    pub ships:      Vec<Ship>,
+}
+
+impl RegisterResult {
+    pub fn new<S1>(
+        token: S1,
+        agent: Agent,
+        faction: Faction,
+        contract: Contract,
+        ships: Vec<Ship>
+    ) -> anyhow::Result<Self>
+    where 
+        S1: Into<String>
+    {
+        let token: String       = token.into();
+        Ok(Self {
+            token,
+            agent,
+            faction,
+            contract,
+            ships
+        })
     }
 }

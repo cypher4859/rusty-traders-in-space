@@ -57,6 +57,14 @@ pub mod declarations {
         Delete {
             #[arg(short, long)]
             agent_id: String
+        },
+        New {
+            #[arg(short, long)]
+            symbol: String,
+            #[arg(short, long)]
+            faction: String,
+            #[arg(short, long)]
+            email: Option<String>
         }
     }
 
@@ -73,15 +81,20 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum FactionCmd {
-        ShowAllFactions
+        ShowAll,
+        Search {
+            #[arg(short, long)]
+            faction: String
+        }
     }
 }
 
 
 pub mod definitions {
     use anyhow::Result;
-    use crate::services::contract::ContractService;
+    use crate::{model::faction_model::Faction, services::contract::ContractService};
     use crate::services::agent::AgentService;
+    use crate::services::faction::{self, FactionService};
     use crate::Config;
     use super::declarations::{ShowCmd, ContractCmd, AgentCmd, NavigateCmd, FactionCmd};
 
@@ -123,13 +136,14 @@ pub mod definitions {
         Ok(())
     }
 
-    pub fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<()> {
+    pub async fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<(),()> {
         match target {
             AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id),
             AgentCmd::Deactivate => agent_svc.deactivate_agent(),
             AgentCmd::Delete { agent_id} => agent_svc.delete_agent(agent_id),
             AgentCmd::Show { agent_id } => agent_svc.find_agent_by_id(agent_id),
-            AgentCmd::ShowAll => println!("Handling showing all agents")
+            AgentCmd::ShowAll => println!("Handling showing all agents"),
+            AgentCmd::New { symbol, faction, email} => agent_svc.register_new_agent(symbol, faction, email).await?
         }
         Ok(())
     }
@@ -147,9 +161,10 @@ pub mod definitions {
         Ok(())
     }
 
-    pub fn faction_action(target: &FactionCmd) -> Result<()> {
+    pub async fn faction_action(faction_svc: &FactionService, target: &FactionCmd) -> Result<(),()> {
         match target {
-            FactionCmd::ShowAllFactions => println!("Handling show all factions")
+            FactionCmd::ShowAll => faction_svc.show_all_factions().await?,
+            FactionCmd::Search { faction } => faction_svc.search_factions(faction).await?
         }
         Ok(())
     }

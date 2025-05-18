@@ -6,6 +6,7 @@ use lib::SpaceTradersService;
 use lib::AgentService;
 use lib::ConfigService;
 use lib::ContractService;
+use lib::FactionService;
 use lib::subcommands;
 use lib::Config;
 
@@ -56,6 +57,7 @@ async fn main() -> anyhow::Result<()> {
     let spacetraders_service: Arc<SpaceTradersService> = Arc::new(SpaceTradersService::new(cfg.clone()).await?);
     let agent_service = Arc::new(AgentService::new(cfg.clone(), spacetraders_service.clone()));
     let contract_service = Arc::new(ContractService::new(cfg.clone(), agent_service.clone(), spacetraders_service.clone()));
+    let faction_service = Arc::new(FactionService::new(cfg.clone(), spacetraders_service.clone()));
 
 
     // Match the CLI  command
@@ -79,11 +81,11 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Commands::Agent { target } => {
-            subcommands::definitions::agent_actions(&agent_service, &target);
+            subcommands::definitions::agent_actions(&agent_service, &target).await;
         }
 
         Commands::Faction { target } => {
-            subcommands::definitions::faction_action(&target);
+            subcommands::definitions::faction_action(&faction_service, &target).await;
         }
 
         Commands::Navigate { target } => {

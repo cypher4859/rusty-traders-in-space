@@ -1,4 +1,5 @@
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Serialize, de::DeserializeOwned};   // ← blanket trait for any owned deserialisable type
 use std::sync::Arc;
 use crate::config::Config;
@@ -17,7 +18,10 @@ pub enum SupportedHttpMethods {
 
 impl SpaceTradersService {
     pub async fn new(cfg: Arc<Config>) -> anyhow::Result<Self> {
-        let http = Client::builder().build()?;
+        let mut headers= HeaderMap::new();
+        let bearer_value = format!("Bearer {}", cfg.api_token);
+        headers.insert(AUTHORIZATION, HeaderValue::from_str(&bearer_value)?);
+        let http = Client::builder().default_headers(headers).build()?;
         Ok(Self {
             cfg: Arc::clone(&cfg),
             http,

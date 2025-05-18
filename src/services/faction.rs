@@ -1,0 +1,42 @@
+use std::sync::Arc;
+use crate::config::Config;
+use crate::model::FactionSymbol;
+use crate::{FactionEnvelopeDTO, SpaceTradersService};
+use strum::IntoEnumIterator;
+
+pub struct FactionService {
+    cfg: Arc<Config>,
+    st: Arc<SpaceTradersService>,
+}
+
+impl FactionService {
+    pub fn new(cfg: Arc<Config>, st: Arc<SpaceTradersService>) -> Self {
+        Self {
+            cfg,
+            st
+        }
+    }
+
+    pub async fn show_all_factions(&self) -> Result<(), ()> {
+        self._show_all_factions().await
+    }
+
+    pub async fn search_factions(&self, faction_name: &String) -> Result<(), ()> {
+        self._search_factions(faction_name).await
+    }
+
+    async fn _search_factions(&self, faction_name: &String) -> anyhow::Result<(), ()> {
+        let uppercase_faction_name = faction_name.to_uppercase();
+        let endpoint: String = format!("factions/{uppercase_faction_name}");
+        let result: Result<FactionEnvelopeDTO, anyhow::Error> = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
+        println!("Result: {result:?}");
+        Ok(())
+    }
+
+    async fn _show_all_factions(&self) -> Result<(), ()> {
+        let endpoint: String = String::from("factions");
+        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
+        println!("Result: {result:?}");
+        Ok(())
+    }
+}
