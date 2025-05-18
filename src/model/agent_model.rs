@@ -9,7 +9,7 @@ pub struct Agent {
     account_id: String,
     symbol:  String,
     hq:      String,
-    credits: i32,
+    credits: i64,
     starting_faction: String,
     ship_count: u32
 }
@@ -18,7 +18,7 @@ impl Agent {
     pub fn new<S1, S2, S3, S4>(
         account_id: S1,
         symbol: S2, 
-        credits: i32, 
+        credits: i64, 
         hq: S3, 
         starting_faction: S4, 
         ship_count: u32

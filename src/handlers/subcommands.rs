@@ -150,11 +150,11 @@ pub mod definitions {
 
     pub async fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<(),()> {
         match target {
-            AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id),
+            AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id).await?,
             AgentCmd::Deactivate => agent_svc.deactivate_agent(),
             AgentCmd::Delete { agent_id} => agent_svc.delete_agent(agent_id),
             AgentCmd::Show { agent_id } => agent_svc.find_agent_by_id(agent_id),
-            AgentCmd::ShowAll => println!("Handling showing all agents"),
+            AgentCmd::ShowAll => agent_svc.list_agents().await?,
             AgentCmd::New { symbol, faction, email} => agent_svc.register_new_agent(symbol, faction, email).await?
         }
         Ok(())

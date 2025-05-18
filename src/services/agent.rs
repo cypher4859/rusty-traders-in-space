@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use crate::config::Config;
+use crate::dto::agent_dto::AgentEnvelopeDTO;
 use crate::{RegisterDataDTO, SpaceTradersService};
 use crate::{AgentDTO, AgentRequestDTO, RegisterEnvelopeDTO};
 use crate::model::agent_model::Agent;
@@ -21,9 +22,10 @@ impl AgentService {
         Ok(())
     }
 
-    pub fn activate_agent(&self, agent_id: &String) {
+    pub async fn activate_agent(&self, agent_id: &String) -> anyhow::Result<(), ()> {
         let agent: String = self._find_agent_by_id(agent_id);
         println!("Handling - Activating agent {agent}");
+        Ok(())
     }
 
     pub fn deactivate_agent(&self) {
@@ -46,8 +48,8 @@ impl AgentService {
         self._get_current_selected_agent()
     }
 
-    pub fn list_agents(&self) {
-        println!("Handling listing allagents");
+    pub async fn list_agents(&self) -> anyhow::Result<(), ()> {
+        self._list_all_agents().await
     }
 
     async fn _register_new_agent(&self, symbol: &String, faction: &String, email: &Option<String>) -> anyhow::Result<RegisterDataDTO> {
@@ -70,8 +72,10 @@ impl AgentService {
     }
 
 
-    fn _list_all_agents(&self) {
-        println!("private - listing all agents");
+    async fn _list_all_agents(&self) -> anyhow::Result<(), ()> {
+        let endpoint: String = String::from("agents");
+        let result = self.st.get::<AgentEnvelopeDTO>(&endpoint).await;
+        Ok(())
     }
 
     fn _get_current_selected_agent(&self) -> String {

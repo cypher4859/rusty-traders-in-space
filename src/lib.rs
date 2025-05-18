@@ -16,4 +16,5 @@ pub use crate::dto::ship_dto::{ShipDTO};
 pub use crate::dto::contract_dto::{ContractDTO, ContractTermsDTO, PaymentDTO, DeliverDTO};
 pub use crate::dto::inventory_dto::{InventoryItemDTO};
 pub use crate::dto::server_dto::{ServerStatusDTO};
+pub use crate::dto::util_dto::{MetaDTO};
 pub use crate::model::{Agent};

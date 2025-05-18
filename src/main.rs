@@ -69,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
     // Match the CLI  command
     match cli.command {
         Commands::Server { target } => {
-            subcommands::definitions::server(&target, &server_service);
+            subcommands::definitions::server(&target, &server_service).await;
         }
 
         Commands::Whereami => {

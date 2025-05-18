@@ -4,6 +4,7 @@ use crate::model::ship_model::{Ship};
 use crate::dto::faction_dto::{FactionDTO};
 use crate::dto::contract_dto::ContractDTO;
 use crate::dto::ship_dto::ShipDTO;
+use crate::dto::util_dto::MetaDTO;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RegisterEnvelopeDTO {
@@ -29,6 +30,19 @@ pub struct AgentRequestDTO {
     pub email: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum AgentDataDTO {
+    Single(AgentDTO),
+    List(Vec<AgentDTO>),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AgentEnvelopeDTO {
+    pub data: AgentDataDTO,
+    pub meta: MetaDTO
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AgentDTO {
     #[serde(rename = "accountId")]
@@ -36,7 +50,7 @@ pub struct AgentDTO {
     pub symbol: String,
     #[serde(rename = "headquarters")]
     pub hq: String,
-    pub credits: i32,
+    pub credits: i64,
     #[serde(rename = "startingFaction")]
     pub starting_faction: String,
     #[serde(rename = "shipCount")]

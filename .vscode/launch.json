@@ -202,6 +202,42 @@
             },
             "args": ["agent", "new", "--faction", "COSMIC", "--symbol", "devilelk669"],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Server Health",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["server", "health"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Agent List All",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["agent", "show-all"],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
