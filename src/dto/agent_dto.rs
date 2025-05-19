@@ -38,15 +38,20 @@ pub enum AgentDataDTO {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct AgentEnvelopeDTO {
+pub struct AgentEnvelopeWithMetaDTO {
     pub data: AgentDataDTO,
     pub meta: MetaDTO
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AgentEnvelopeDTO {
+    pub data: AgentDataDTO,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AgentDTO {
-    #[serde(rename = "accountId")]
-    pub account_id: String,
+    #[serde(rename = "accountId", default)]
+    pub account_id: Option<String>,
     pub symbol: String,
     #[serde(rename = "headquarters")]
     pub hq: String,
@@ -61,8 +66,12 @@ impl TryFrom<AgentDTO> for Agent {
     type Error = anyhow::Error;
 
     fn try_from(dto: AgentDTO) -> anyhow::Result<Self> {
+        let account_id = dto
+            .account_id
+            .ok_or_else(|| anyhow::anyhow!("account_id absent in this context"))?;
+
         Agent::new(
-            dto.account_id,
+            account_id,
             dto.symbol, 
             dto.credits, 
             dto.hq,

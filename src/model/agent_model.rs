@@ -65,7 +65,7 @@ impl Agent {
 impl From<Agent> for AgentDTO {
     fn from(model: Agent) -> Self {
         AgentDTO {
-            account_id: String::new(), // not used outbound—leave blank or compute
+            account_id: Some(model.account_id), // not used outbound—leave blank or compute
             symbol:  model.symbol,
             hq: model.hq,
             credits: model.credits,

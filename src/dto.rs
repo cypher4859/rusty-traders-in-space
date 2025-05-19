@@ -5,7 +5,7 @@ pub mod ship_dto;
 pub mod inventory_dto;
 pub mod server_dto;
 pub mod util_dto;
-pub use crate::dto::agent_dto::{AgentDTO, AgentRequestDTO, RegisterDataDTO, RegisterEnvelopeDTO};
+pub use crate::dto::agent_dto::{AgentDTO, AgentRequestDTO, RegisterDataDTO, RegisterEnvelopeDTO, AgentEnvelopeDTO};
 pub use crate::dto::faction_dto::{FactionEnvelopeDTO, FactionDTO, FactionDataDTO};
 pub use crate::dto::inventory_dto::{InventoryItemDTO};
 pub use crate::dto::contract_dto::{ContractDTO, ContractTermsDTO, PaymentDTO, DeliverDTO};

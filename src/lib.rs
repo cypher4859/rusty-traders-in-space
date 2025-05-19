@@ -10,7 +10,7 @@ pub use crate::services::agent::AgentService;
 pub use crate::services::faction::FactionService;
 pub use crate::services::server::ServerService;
 pub use crate::config::{ConfigService, Config};
-pub use crate::dto::agent_dto::{AgentDTO, AgentRequestDTO, RegisterDataDTO, RegisterEnvelopeDTO};
+pub use crate::dto::agent_dto::{AgentDTO, AgentRequestDTO, RegisterDataDTO, RegisterEnvelopeDTO, AgentEnvelopeDTO};
 pub use crate::dto::faction_dto::{FactionDTO, FactionEnvelopeDTO, TraitDTO};
 pub use crate::dto::ship_dto::{ShipDTO};
 pub use crate::dto::contract_dto::{ContractDTO, ContractTermsDTO, PaymentDTO, DeliverDTO};

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use crate::config::Config;
-use crate::dto::agent_dto::AgentEnvelopeDTO;
+use crate::dto::agent_dto::AgentEnvelopeWithMetaDTO;
 use crate::{RegisterDataDTO, SpaceTradersService};
-use crate::{AgentDTO, AgentRequestDTO, RegisterEnvelopeDTO};
+use crate::{AgentDTO, AgentRequestDTO, RegisterEnvelopeDTO, AgentEnvelopeDTO};
 use crate::model::agent_model::Agent;
 
 
@@ -23,8 +23,7 @@ impl AgentService {
     }
 
     pub async fn activate_agent(&self, agent_id: &String) -> anyhow::Result<(), ()> {
-        let agent: String = self._find_agent_by_id(agent_id);
-        println!("Handling - Activating agent {agent}");
+        self._find_agent_by_id(agent_id).await;
         Ok(())
     }
 
@@ -33,14 +32,13 @@ impl AgentService {
         println!("Handling - Activating agent {agent}");
     }
 
-    pub fn delete_agent(&self, agent_id: &String) {
-        let agent: String = self._find_agent_by_id(agent_id);
-        println!("Handling - Deleting agent {agent} by id");
+    pub async fn delete_agent(&self, agent_id: &String) {
+        let agent: anyhow::Result<String> = self._find_agent_by_id(agent_id).await;
     }
 
-    pub fn find_agent_by_id(&self, agent_id: &String) {
-        let agent: String = self._find_agent_by_id(agent_id);
-        println!("Handling - Find Agent {agent} by id");
+    pub async fn find_agent_by_id(&self, agent_id: &String) {
+        self._find_agent_by_id(agent_id).await;
+        // println!("Handling - Find Agent {agent} by id");
     }
 
     pub fn find_current_agent(&self) -> String {
@@ -48,8 +46,21 @@ impl AgentService {
         self._get_current_selected_agent()
     }
 
-    pub async fn list_agents(&self) -> anyhow::Result<(), ()> {
-        self._list_all_agents().await
+    pub async fn list_agents(&self, symbol: &Option<String>) -> anyhow::Result<(), ()> {
+        match symbol {
+            // ① a specific symbol was supplied → get just that agent
+            Some(sym) => {
+                let agent = self._find_agent_by_id(sym).await;
+            }
+    
+            // ② no symbol → list them all
+            None => {
+                let agents = self._list_all_agents().await;
+            }
+        }
+
+        Ok(())
+        
     }
 
     async fn _register_new_agent(&self, symbol: &String, faction: &String, email: &Option<String>) -> anyhow::Result<RegisterDataDTO> {
@@ -67,14 +78,16 @@ impl AgentService {
         
     }
 
-    fn _find_agent_by_id(&self, agent_id: &String) -> String {
-        String::from("Fake Agent - {agent_id}")
+    async fn _find_agent_by_id(&self, agent_id: &String) -> anyhow::Result<String> {
+        let endpoint: String = format!("agents/{}", agent_id.to_uppercase());
+        let result = self.st.get::<AgentEnvelopeDTO>(&endpoint).await;
+        Ok(String::from("Fake Agent - {agent_id}"))
     }
 
 
     async fn _list_all_agents(&self) -> anyhow::Result<(), ()> {
         let endpoint: String = String::from("agents");
-        let result = self.st.get::<AgentEnvelopeDTO>(&endpoint).await;
+        let result = self.st.get::<AgentEnvelopeWithMetaDTO>(&endpoint).await;
         Ok(())
     }
 
