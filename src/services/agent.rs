@@ -153,6 +153,6 @@ impl AgentService {
     // TODO: This function should loop through our datastore, wherever that is (likely sqlite), and grab the currently selected agent
     async fn _get_current_selected_agent_token(&self) -> anyhow::Result<String> {
         let Agent = self._get_current_selected_agent().await?;
-        Ok(String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGlmaWVyIjoiQUVMSU5EUkFDSCIsInZlcnNpb24iOiJ2Mi4zLjAiLCJyZXNldF9kYXRlIjoiMjAyNS0wNS0xOCIsImlhdCI6MTc0NzgzNzM1MSwic3ViIjoiYWdlbnQtdG9rZW4ifQ.V7QEqTC6laEtxdDqajt8I3IrQggoMS0aYRyqDfd9kSZmquXCJPJbroE7nT6IekaaKxLW3XkJkB7IvbE59bKdvZtJix3ClbYynvEqkm2u1CqoxR8-4wQ8FIa2xP9TG8n5uXyJXtu4o8qteuRlVZZMi9IOCjzC83NdbEt7DDzXiWkDyGhAzWUP85ezpy_pBYy4dA1Ri9fd9wXEofSFCFvsIMSalCD0PN6G_VfYhissnry0OkKnbwpaSQ5mOG8EUemKNLvYUgfPEVabirjZyeYHjWM8RuZSQ0L4vW9VBEkwOvlNI0iOxhO6nICKYmL19KZzArDNdq8zVrJQ-NenuL6iwjeV4pQG4qnNeT7rJv07Qe48_dETjHmrhHlxr_yUnT2taGB10H6gsUselJhDuWAtahKS3ojwFRiL9EiSq-LSqihgpkt3viR8BxVX5rRvsaxreNy0SJTHOzQhNccL0-8qKQpn1tej1O9PeeXaeR7VuvJ7BUF2K3BJtp9KsyEQuY8D1__09Ap9lhPGjGAqEaVUMmgqIl49W29hhwlsC5oCUDwYGApCRXNPuI7I5R6Ntt3kpfEvbs4Xek8sNSI90u0Vi07e8bnTApeW28i7L--SjJfjF6lqlOPHQDZ3rbrpo5IixaehY7G3j2WXahFgeJS_PHecF5RqE80fBFxpZ2YI_Mk"))
+        Ok(String::from("someToken"))
     }
 }
