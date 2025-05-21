@@ -37,11 +37,11 @@ pub enum FrameSymbol {
 pub struct FrameRequirements {
     pub power: i32,
     pub crew: i32,
-    pub slots: i32
+    pub slots: Option<i32>
 }
 
 impl FrameRequirements {
-    pub fn new(power: i32, crew: i32, slots: i32) -> anyhow::Result<Self> {
+    pub fn new(power: i32, crew: i32, slots: Option<i32>) -> anyhow::Result<Self> {
         Ok(Self {
             power,
             crew,

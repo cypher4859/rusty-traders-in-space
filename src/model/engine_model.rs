@@ -33,11 +33,11 @@ impl FromStr for EngineSymbol {
 pub struct EngineRequirements {
     pub power: i32,
     pub crew: i32,
-    pub slots: i32
+    pub slots: Option<i32>
 }
 
 impl EngineRequirements {
-    pub fn new(power: i32, crew: i32, slots: i32) -> anyhow::Result<Self> {
+    pub fn new(power: i32, crew: i32, slots: Option<i32>) -> anyhow::Result<Self> {
         Ok(Self {
             power,
             crew,

@@ -72,13 +72,13 @@ impl TryFrom<ReactorDTO> for Reactor {
 
 #[derive(Debug, Clone)]
 pub struct ReactorRequirements {
-    pub power: i32,
+    pub power: Option<i32>,
     pub crew: i32,
-    pub slots: i32
+    pub slots: Option<i32>
 }
 
 impl ReactorRequirements {
-    pub fn new(power: i32, crew: i32, slots: i32) -> anyhow::Result<Self> {
+    pub fn new(power: Option<i32>, crew: i32, slots: Option<i32>) -> anyhow::Result<Self> {
         Ok(Self {
             power,
             crew,

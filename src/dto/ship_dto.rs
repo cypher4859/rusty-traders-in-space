@@ -95,7 +95,7 @@ pub struct FrameDTO {
 pub struct FrameRequirementsDTO {
     pub power:      i32,
     pub crew:       i32,
-    pub slots:      i32
+    pub slots:      Option<i32>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -115,9 +115,9 @@ pub struct ReactorDTO {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ReactorRequirementsDTO {
-    pub power: i32,
+    pub power: Option<i32>,
     pub crew: i32,
-    pub slots: i32
+    pub slots: Option<i32>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -138,7 +138,7 @@ pub struct EngineDTO {
 pub struct EngineRequirementsDTO {
     pub power:          i32,
     pub crew:           i32,
-    pub slots:          i32
+    pub slots:          Option<i32>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -154,9 +154,9 @@ pub struct ModuleDTO {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ModuleRequirementsDTO {
-    pub power:          i32,
+    pub power:          Option<i32>,
     pub crew:           i32,
-    pub slots:          i32
+    pub slots:          Option<i32>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -172,9 +172,9 @@ pub struct MountDTO {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MountRequirementsDTO {
-    pub power:          i32,
+    pub power:          Option<i32>,
     pub crew:           i32,
-    pub slots:          i32
+    pub slots:          Option<i32>
 }
 
 #[derive(Debug, Deserialize, Serialize)]
