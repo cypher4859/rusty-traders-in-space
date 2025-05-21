@@ -55,8 +55,11 @@ pub mod declarations {
         },
         Deactivate,
         Show {
-            #[arg(short, long)] // TODO: Add default vault to get currently selected Agent to show it
-            agent_id: String
+            #[arg(short, long, required = false)]
+            agent_id: Option<String>,
+            #[arg(short, long, action = clap::ArgAction::SetTrue)]
+            mine: bool
+
         },
         Search {
             #[arg(short, long)]
@@ -151,12 +154,12 @@ pub mod definitions {
         Ok(())
     }
 
-    pub async fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<(),()> {
+    pub async fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<()> {
         match target {
             AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id).await?,
-            AgentCmd::Deactivate => agent_svc.deactivate_agent(),
+            AgentCmd::Deactivate => agent_svc.deactivate_agent().await?,
             AgentCmd::Delete { agent_id} => agent_svc.delete_agent(agent_id).await,
-            AgentCmd::Show { agent_id } => agent_svc.find_agent_by_id(agent_id).await,
+            AgentCmd::Show { agent_id, mine } => agent_svc.find_agent(agent_id, mine).await?,
             AgentCmd::Search { symbol} => agent_svc.list_agents(symbol).await?,
             AgentCmd::New { symbol, faction, email} => agent_svc.register_new_agent(symbol, faction, email).await?
         }

@@ -15,6 +15,10 @@ pub struct Agent {
 }
 
 impl Agent {
+    pub fn get_symbol(&self) -> &String {
+        &self.symbol
+    }
+
     pub fn new<S1, S2, S3, S4>(
         account_id: S1,
         symbol: S2, 

@@ -63,56 +63,96 @@ impl SpaceTradersService {
     where
         T: DeserializeOwned + Serialize + Debug,   // <- same bounds
     {
+        self.get_with_headers::<T>(endpoint, None).await
+    }
+
+    pub async fn get_with_headers<T>(
+        &self,
+        endpoint: &str,
+        extra: Option<HeaderMap>,
+    ) -> anyhow::Result<T>
+    where
+        T: DeserializeOwned + Serialize + Debug,
+    {
         let result = self
-            .send_request::<T, ()>(endpoint, SupportedHttpMethods::Get, None)
+            .send_request::<T, ()>(endpoint, SupportedHttpMethods::Get, None, extra)
             .await;
 
         self.display_api_result(&format!("GET {endpoint}"), &result);
-        result                                   // propagate to caller
+        result
     }
 
     pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug, B: Serialize + ?Sized {
-        let result = self.send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body).await;
+        self.post_with_headers::<T, B>(endpoint, body, None).await
+    }
+
+    pub async fn post_with_headers<T, B>(&self, endpoint: &String, body: Option<&B>, extra: Option<HeaderMap>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug, B: Serialize + ?Sized {
+        let result = self.send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body, extra).await;
         self.display_api_result(&format!("POST {endpoint}"), &result);
         result
 
     }
 
-    pub async fn send_request<T, B>(&self, endpoint: &String, http_method: SupportedHttpMethods, body: Option<&B>) -> anyhow::Result<T> where
+    pub async fn send_request<T, B>(
+        &self,
+        endpoint: &str,
+        http_method: SupportedHttpMethods,
+        body: Option<&B>,
+        extra_headers: Option<HeaderMap>,
+    ) -> anyhow::Result<T>
+    where
         T: DeserializeOwned,
-        B: Serialize + ?Sized
+        B: Serialize + ?Sized,
     {
         match http_method {
-            SupportedHttpMethods::Get => self._get_request_by_http::<T>(endpoint).await,
+            SupportedHttpMethods::Get => {
+                self._get_request_by_http::<T>(endpoint, extra_headers).await
+            }
             SupportedHttpMethods::Post => {
                 let b = body.ok_or_else(|| anyhow::anyhow!("POST needs a body"))?;
-                self._post_request_by_http::<T, B>(endpoint, b).await
+                self._post_request_by_http::<T, B>(endpoint, b, extra_headers)
+                    .await
             }
         }
     }
     
-    async fn _get_request_by_http<T>(&self, endpoint: &String) -> anyhow::Result<T> where T: DeserializeOwned {
+    async fn _get_request_by_http<T>(
+        &self,
+        endpoint: &str,
+        extra: Option<HeaderMap>,
+    ) -> anyhow::Result<T>
+    where
+        T: DeserializeOwned,
+    {
         let url = format!("{}/{}", self.base, endpoint);
-        let value = self.http
-            .get(url)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<T>()
-            .await?;
+        let mut req = self.http.get(url);
+    
+        if let Some(h) = extra {
+            req = req.headers(h);
+        }
+    
+        let value = req.send().await?.error_for_status()?.json::<T>().await?;
         Ok(value)
     }
-
-    async fn _post_request_by_http<T, B>(&self, endpoint: &String, body: &B) -> anyhow::Result<T> where T: DeserializeOwned, B: Serialize + ?Sized {
+    
+    async fn _post_request_by_http<T, B>(
+        &self,
+        endpoint: &str,
+        body: &B,
+        extra: Option<HeaderMap>,
+    ) -> anyhow::Result<T>
+    where
+        T: DeserializeOwned,
+        B: Serialize + ?Sized,
+    {
         let url = format!("{}/{}", self.base, endpoint);
-        let value = self.http
-            .post(url)
-            .json(body)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<T>()
-            .await?;
+        let mut req = self.http.post(url).json(body);
+    
+        if let Some(h) = extra {
+            req = req.headers(h);
+        }
+    
+        let value = req.send().await?.error_for_status()?.json::<T>().await?;
         Ok(value)
     }
 

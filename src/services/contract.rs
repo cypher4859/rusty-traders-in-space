@@ -2,6 +2,7 @@ use std::sync::Arc;
 use crate::config::Config;
 use crate::AgentService;
 use crate::SpaceTradersService;
+use crate::Agent;
 
 #[derive(Clone)]
 pub struct ContractService {
@@ -27,10 +28,11 @@ impl ContractService {
         println!("Handling Negotiating contract {contract_id}");
     }
 
-    pub fn show_current_contracts(&self) {
+    pub async fn show_current_contracts(&self) -> anyhow::Result<()> {
         println!("Handling showing current contracts");
-        let agent_id: String = self.agent_svc.find_current_agent();
-        self._list_contracts_owned_by_agent(&agent_id);
+        let agent: Agent = self.agent_svc.find_current_agent().await?;
+        self._list_contracts_owned_by_agent(&agent.get_symbol());
+        Ok(())
     }
 
     fn _list_contracts_owned_by_agent(&self, agent_id: &String) {
