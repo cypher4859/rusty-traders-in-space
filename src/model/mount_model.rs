@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use strum_macros::{EnumIter};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{MountDTO, MountRequirementsDTO};
+use crate::dto::responses::fleet_dto::{MountDTO, MountRequirementsDTO};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

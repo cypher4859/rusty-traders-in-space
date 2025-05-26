@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{FrameDTO, FrameRequirementsDTO};
+use crate::dto::responses::fleet_dto::{FrameDTO, FrameRequirementsDTO};
 
 
 

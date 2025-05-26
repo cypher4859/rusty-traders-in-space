@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 use crate::model::agent_model::{Agent, RegisterResult};
 use crate::model::ship_model::{Ship};
-use crate::dto::faction_dto::{FactionDTO};
-use crate::dto::contract_dto::ContractDTO;
-use crate::dto::ship_dto::ShipDTO;
-use crate::dto::util_dto::MetaDTO;
+use crate::dto::responses::faction_dto::{FactionDTO};
+use crate::dto::responses::contract_dto::ContractDTO;
+use crate::dto::responses::fleet_dto::ShipDTO;
+use crate::dto::responses::util_dto::MetaDTO;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RegisterEnvelopeDTO {

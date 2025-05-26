@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{CargoDTO};
+use crate::dto::responses::fleet_dto::{CargoDTO};
 use super::{InventoryItem};
 
 #[derive(Debug, Clone)]

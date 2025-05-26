@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use strum_macros::{EnumIter};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{ModuleDTO, ModuleRequirementsDTO};
+use crate::dto::responses::fleet_dto::{ModuleDTO, ModuleRequirementsDTO};
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]

@@ -1,8 +1,8 @@
 use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString};
-use crate::dto::inventory_dto::{InventoryItemDTO};
-use crate::dto::ship_dto::{CrewDTO, EngineDTO, FrameDTO, NavRouteLocationDTO, ReactorDTO, RegistrationDTO, ShipDTO, ModuleDTO, ModuleRequirementsDTO, MountDTO, MountRequirementsDTO, CooldownDTO, FuelDTO, CargoDTO};
+use crate::dto::responses::inventory_dto::{InventoryItemDTO};
+use crate::dto::responses::fleet_dto::{CrewDTO, EngineDTO, FrameDTO, NavRouteLocationDTO, ReactorDTO, RegistrationDTO, ShipDTO, ModuleDTO, ModuleRequirementsDTO, MountDTO, MountRequirementsDTO, CooldownDTO, FuelDTO, CargoDTO};
 use anyhow::{Result, ensure};
 use std::convert::TryFrom;
 

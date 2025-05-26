@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use strum_macros::{EnumIter, EnumString};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{ReactorDTO, ReactorRequirementsDTO};
+use crate::dto::responses::fleet_dto::{ReactorDTO, ReactorRequirementsDTO};
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash,

@@ -2,6 +2,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use lib::ServerService;
+use lib::SystemService;
 use tracing::{info, error};
 use lib::SpaceTradersService;
 use lib::AgentService;
@@ -49,6 +50,10 @@ enum Commands {
     Navigate {
         #[command(subcommand)]
         target: subcommands::declarations::NavigateCmd
+    },
+    System {
+        #[command(subcommand)]
+        target: subcommands::declarations::SystemCmd
     }
 }
 
@@ -60,11 +65,11 @@ async fn main() -> anyhow::Result<()> {
     let cfg: Arc<Config> = config_service.settings();
 
     let spacetraders_service: Arc<SpaceTradersService> = Arc::new(SpaceTradersService::new(cfg.clone()).await?);
-    let server_service: Arc<ServerService>= Arc::new(ServerService::new(spacetraders_service.clone(), cfg.clone()));
+    let server_service: Arc<ServerService> = Arc::new(ServerService::new(spacetraders_service.clone(), cfg.clone()));
     let agent_service = Arc::new(AgentService::new(cfg.clone(), spacetraders_service.clone()));
     let contract_service = Arc::new(ContractService::new(cfg.clone(), agent_service.clone(), spacetraders_service.clone()));
     let faction_service = Arc::new(FactionService::new(cfg.clone(), spacetraders_service.clone()));
-
+    let system_service = Arc::new(SystemService::new(cfg.clone(), spacetraders_service.clone(), agent_service.clone()));
 
     // Match the CLI  command
     match cli.command {
@@ -87,7 +92,7 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Commands::Contract { target } => {
-            subcommands::definitions::contract_action(&contract_service, &target);
+            subcommands::definitions::contract_action(&contract_service, &target).await;
         }
 
         Commands::Agent { target } => {
@@ -100,6 +105,10 @@ async fn main() -> anyhow::Result<()> {
 
         Commands::Navigate { target } => {
             subcommands::definitions::navigate(&target);
+        }
+
+        Commands::System { target } => {
+            subcommands::definitions::system_actions(&system_service, &target).await;
         }
     }
 

@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 use strum_macros::{EnumIter, EnumString};
-use crate::dto::ship_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO};
+use crate::dto::responses::fleet_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO};
 
 use super::{ShipStatus, ShipFlightMode};
 

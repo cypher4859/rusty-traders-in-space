@@ -196,3 +196,47 @@ impl TryFrom<DeliverDTO> for Deliver {
         )
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct DeliverGoods {
+    trade_symbol: String,
+    destination_symbol: String,
+    units_required: i64,
+    units_fulfilled: i64,
+}
+
+impl DeliverGoods {
+    pub fn new<S1, S2>(
+        trade_symbol: S1,
+        destination_symbol: S2,
+        units_required: i64,
+        units_fulfilled: i64
+    ) -> anyhow::Result<Self>
+    where 
+        S1: Into<String>,
+        S2: Into<String>
+    {
+        let trade_symbol = trade_symbol.into();
+        let destination_symbol = destination_symbol.into();
+
+        Ok(Self {
+            trade_symbol,
+            destination_symbol,
+            units_required,
+            units_fulfilled
+        })
+    }
+}
+
+// impl TryFrom<DeliverDTO> for Deliver {
+//     type Error = anyhow::Error;
+
+//     fn try_from(dto: DeliverDTO) -> anyhow::Result<Self> {
+//         Deliver::new(
+//             dto.trade_symbol,
+//             dto.destination_symbol,
+//             dto.units_required,
+//             dto.units_fulfilled
+//         )
+//     }
+// }

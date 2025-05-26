@@ -1,5 +1,37 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
+use crate::dto::responses::util_dto::MetaDTO;
+
+use super::fleet_dto::CargoDTO;
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum ContractDataDTO {
+    Single(ContractDTO),
+    List(Vec<ContractDTO>),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ContractEnvelopeWithMetaDTO {
+    pub data: ContractDataDTO,
+    pub meta: MetaDTO
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ContractEnvelopeDTO {
+    pub data: ContractDataDTO,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ContractAndCargoEnvelopeDTO {
+    pub data: ContractDataWithCargoDTO,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ContractDataWithCargoDTO {
+    pub contract: ContractDTO,
+    pub cargo: CargoDTO
+}
 
 
 #[derive(Debug, Deserialize, Serialize)]

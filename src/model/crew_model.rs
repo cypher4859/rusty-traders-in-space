@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{CrewDTO};
+use crate::dto::responses::fleet_dto::{CrewDTO};
 
 #[derive(Debug, Clone)]
 pub struct Crew {

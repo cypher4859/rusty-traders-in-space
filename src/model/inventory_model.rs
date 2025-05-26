@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 use strum_macros::{EnumIter, EnumString};
-use crate::dto::inventory_dto::{InventoryItemDTO};
+use crate::dto::responses::inventory_dto::{InventoryItemDTO};
 
 #[derive(Debug, Clone)]
 pub struct InventoryItem {

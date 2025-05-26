@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::ship_dto::{FuelDTO};
+use crate::dto::responses::fleet_dto::{FuelDTO};
 
 
 #[derive(Debug, Clone)]

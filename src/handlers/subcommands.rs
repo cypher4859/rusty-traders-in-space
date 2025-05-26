@@ -44,6 +44,18 @@ pub mod declarations {
             #[arg(short, long)]
             contract_id: String
         },
+        Find {
+            #[arg(short, long)]
+            contract_id: String
+        },
+        Fulfill {
+            #[arg(short, long)]
+            contract_id: String
+        },
+        Deliver {
+            #[arg(short, long)]
+            contract_id: String
+        }
     }
 
 
@@ -80,6 +92,49 @@ pub mod declarations {
     }
 
     #[derive(Subcommand)]
+    pub enum SystemCmd {
+        List,
+        Details {
+            #[arg(short, long)]
+            system: String
+        },
+        Waypoints {
+            #[arg(short, long)]
+            system: String
+        },
+        Waypoint {
+            #[arg(short, long)]
+            waypoint: String
+        }
+    }
+
+    #[derive(Subcommand)]
+    pub enum WaypointCmd {
+        List {
+            #[arg(short, long)]
+            system: String
+        },
+        Details {
+            #[arg(short, long)]
+            waypoint: String
+        },
+        Jumpgate {
+            #[arg(short, long)]
+            waypoint: String
+        },
+        Market {
+            #[arg(short, long)]
+            waypoint: String
+        },
+        Construction {
+            #[arg(short, long)]
+            waypoint: String
+        }
+    }
+
+
+
+    #[derive(Subcommand)]
     pub enum NavigateCmd {
         Orbit,
         Dock,
@@ -98,16 +153,22 @@ pub mod declarations {
             faction: String
         }
     }
+
+    #[derive(Subcommand)]
+    pub enum MarketCmd {
+        Supply
+    }
 }
 
 
 pub mod definitions {
     use anyhow::Result;
+    use tracing_subscriber::field::MakeExt;
     use crate::{model::faction_model::Faction, services::contract::ContractService};
     use crate::services::agent::AgentService;
     use crate::services::faction::{self, FactionService};
-    use crate::{Config, ServerService};
-    use super::declarations::{AgentCmd, ContractCmd, FactionCmd, NavigateCmd, ServerCmd, ShowCmd};
+    use crate::{Config, MarketService, ServerService, SystemService};
+    use super::declarations::{AgentCmd, ContractCmd, FactionCmd, MarketCmd, NavigateCmd, ServerCmd, ShowCmd, SystemCmd};
 
     pub async fn server(target: &ServerCmd, server_svc: &ServerService) -> Result<(), ()> {
         match target {
@@ -141,14 +202,14 @@ pub mod definitions {
         Ok(())
     }
 
-    pub fn contract_action(contract_svc: &ContractService, target: &ContractCmd) -> Result<()> {
+    pub async fn contract_action(contract_svc: &ContractService, target: &ContractCmd) -> Result<()> {
         match target {
-            ContractCmd::Accept { contract_id} => contract_svc.accept_contract(contract_id),
-            ContractCmd::Negotiate { contract_id} => contract_svc.negotiate_contract(contract_id),
-            ContractCmd::Current => {
-                // let agent_id: String = find_current_agent();
-                let current_contracts = contract_svc.show_current_contracts();
-            }
+            ContractCmd::Accept { contract_id} => contract_svc.accept_contract(contract_id).await?,
+            ContractCmd::Negotiate { contract_id } => contract_svc.negotiate_contract(contract_id).await?,
+            ContractCmd::Current => contract_svc.show_current_contracts().await?,
+            ContractCmd::Find { contract_id} => contract_svc.find_contract(contract_id).await?,
+            ContractCmd::Fulfill { contract_id } => contract_svc.fulfill_contract(contract_id).await?,
+            ContractCmd::Deliver { contract_id } => contract_svc.deliver_contract(contract_id).await?
         }
 
         Ok(())
@@ -185,5 +246,20 @@ pub mod definitions {
             FactionCmd::Search { faction } => faction_svc.search_factions(faction).await?
         }
         Ok(())
+    }
+
+    pub async fn market_action(market_svc: &MarketService, target: &MarketCmd) -> anyhow::Result<()> {
+        match target {
+            MarketCmd::Supply => market_svc.get_market_supply_chain().await
+        }
+    }
+
+    pub async fn system_actions(system_svc: &SystemService, target: &SystemCmd) ->anyhow::Result<()> {
+        match target {
+            SystemCmd::List => system_svc.list_systems().await,
+            SystemCmd::Details { system } => system_svc.get_system(system).await,
+            SystemCmd::Waypoints { system, } => system_svc.list_waypoints_by_system(system).await,
+            SystemCmd::Waypoint { waypoint } => system_svc.get_waypoint(waypoint).await
+        }
     }
 }

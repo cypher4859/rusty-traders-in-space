@@ -82,6 +82,15 @@ impl SpaceTradersService {
         result
     }
 
+    pub fn get_agent_headers(&self, agent_token: &String) -> anyhow::Result<HeaderMap> {
+        let mut hdr: HeaderMap =  HeaderMap::new();
+        hdr.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", agent_token))?
+        );
+        Ok((hdr))
+    }
+
     pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug, B: Serialize + ?Sized {
         self.post_with_headers::<T, B>(endpoint, body, None).await
     }
