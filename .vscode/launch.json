@@ -44,7 +44,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command: Greet",
+            "name": "Debug: greet",
             "cargo": {
                 "args": [
                     "build",
@@ -62,7 +62,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command: Show",
+            "name": "Debug: Show",
             "cargo": {
                 "args": [
                     "build",
@@ -80,7 +80,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command: Show whereami",
+            "name": "Debug: show whereami",
             "cargo": {
                 "args": [
                     "build",
@@ -98,7 +98,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command: Show contracts",
+            "name": "Debug: show contracts",
             "cargo": {
                 "args": [
                     "build",
@@ -116,7 +116,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command and no args: contracts accept",
+            "name": "Debug: contracts accept",
             "cargo": {
                 "args": [
                     "build",
@@ -134,7 +134,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command: contracts accept --contract-id=4",
+            "name": "Debug: contracts accept --contract-id=4",
             "cargo": {
                 "args": [
                     "build",
@@ -152,7 +152,25 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'spacetraders' w/ command: faction show-all",
+            "name": "Debug: contract current",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["contract", "current"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: faction show-all",
             "cargo": {
                 "args": [
                     "build",
@@ -237,6 +255,24 @@
                 }
             },
             "args": ["agent", "show-all"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: System List All",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["system", "list"],
             "cwd": "${workspaceFolder}"
         }
     ]

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use crate::config::Config;
-use crate::dto::agent_dto::{AgentDataDTO, AgentEnvelopeWithMetaDTO};
+use crate::dto::responses::agent_dto::{AgentDataDTO, AgentEnvelopeWithMetaDTO};
 use crate::{RegisterDataDTO, SpaceTradersService};
 use crate::{AgentDTO, AgentRequestDTO, RegisterEnvelopeDTO, AgentEnvelopeDTO};
 use crate::model::agent_model::Agent;
@@ -74,6 +74,10 @@ impl AgentService {
     pub async fn find_current_agent(&self) -> anyhow::Result<Agent> {
         println!("Handling finding current agent");
         self._get_current_selected_agent().await
+    }
+
+    pub async fn get_current_selected_agent_token(&self) -> anyhow::Result<String> {
+        self._get_current_selected_agent_token().await
     }
 
     pub async fn list_agents(&self, symbol: &Option<String>) -> anyhow::Result<()> {
