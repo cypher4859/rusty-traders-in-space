@@ -151,9 +151,9 @@ pub struct MarketDTO {
     pub imports:      Vec<GoodInfoDTO>,
     pub exchange:     Vec<GoodInfoDTO>,
 
-    pub transactions: Vec<MarketTxDTO>,
+    pub transactions: Option<Vec<MarketTxDTO>>,
     #[serde(rename = "tradeGoods")]
-    pub trade_goods:  Vec<TradeGoodDTO>,
+    pub trade_goods:  Option<Vec<TradeGoodDTO>>,
 }
 
 /// ---------- simple good descriptor (export / import / exchange) ----------

@@ -168,7 +168,7 @@ pub mod definitions {
     use crate::services::agent::AgentService;
     use crate::services::faction::{self, FactionService};
     use crate::{Config, MarketService, ServerService, SystemService};
-    use super::declarations::{AgentCmd, ContractCmd, FactionCmd, MarketCmd, NavigateCmd, ServerCmd, ShowCmd, SystemCmd};
+    use super::declarations::{AgentCmd, ContractCmd, FactionCmd, MarketCmd, NavigateCmd, ServerCmd, ShowCmd, SystemCmd, WaypointCmd};
 
     pub async fn server(target: &ServerCmd, server_svc: &ServerService) -> Result<(), ()> {
         match target {
@@ -260,6 +260,16 @@ pub mod definitions {
             SystemCmd::Details { system } => system_svc.get_system(system).await,
             SystemCmd::Waypoints { system, } => system_svc.list_waypoints_by_system(system).await,
             SystemCmd::Waypoint { waypoint } => system_svc.get_waypoint(waypoint).await
+        }
+    }
+
+    pub async fn waypoint_actions(system_svc: &SystemService, target: &WaypointCmd) -> anyhow::Result<()> {
+        match target {
+            WaypointCmd::List { system } => system_svc.list_waypoints_by_system(system).await,
+            WaypointCmd::Details { waypoint } => system_svc.get_waypoint(waypoint).await,
+            WaypointCmd::Jumpgate { waypoint } => system_svc.get_jumpgate(waypoint).await,
+            WaypointCmd::Market { waypoint } => system_svc.get_market(waypoint).await,
+            WaypointCmd::Construction { waypoint } => system_svc.get_construction_site(waypoint).await
         }
     }
 }

@@ -54,6 +54,10 @@ enum Commands {
     System {
         #[command(subcommand)]
         target: subcommands::declarations::SystemCmd
+    },
+    Waypoint {
+        #[command(subcommand)]
+        target: subcommands::declarations::WaypointCmd
     }
 }
 
@@ -109,6 +113,10 @@ async fn main() -> anyhow::Result<()> {
 
         Commands::System { target } => {
             subcommands::definitions::system_actions(&system_service, &target).await;
+        }
+
+        Commands::Waypoint { target } => {
+            subcommands::definitions::waypoint_actions(&system_service, &target).await;
         }
     }
 

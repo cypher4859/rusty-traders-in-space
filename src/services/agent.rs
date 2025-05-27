@@ -148,7 +148,7 @@ impl AgentService {
             String::from(""),
             String::from("AELINDRACH"),
             175_000_i64,
-            String::from("X1-JB22-A1"),
+            String::from("X1-AS18-A1"),
             String::from("SHADOW"),
             2_u32
         )?)
@@ -157,6 +157,6 @@ impl AgentService {
     // TODO: This function should loop through our datastore, wherever that is (likely sqlite), and grab the currently selected agent
     async fn _get_current_selected_agent_token(&self) -> anyhow::Result<String> {
         let Agent = self._get_current_selected_agent().await?;
-        Ok(String::from("someToken"))
+        Ok(String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGlmaWVyIjoiQUVMSU5EUkFDSCIsInZlcnNpb24iOiJ2Mi4zLjAiLCJyZXNldF9kYXRlIjoiMjAyNS0wNS0yNSIsImlhdCI6MTc0ODI3MDM0Niwic3ViIjoiYWdlbnQtdG9rZW4ifQ.VxPsqS6ImAQ46jlA8mJFotT6bPWvC8B2g0rxlVtCGPr0_wjATT7q6ajbctYjWk1q-w5nFsh_crNPIHzmU837cUUtbiZ9KsxxlWhFBQM4n3ynQHdBGfCWs4t6Aa_0Kj8atrDIijIpNcBdmiHd5n3ow0tP4pYjz0g6CODn6-QKgbFKZozERoPxRS0fSl_sutGcYbiz7MiBiQRyXCmzHAA3_jiTHj9X32pDBKmRj9wn7KJCm6vdkNs-9ES9h96PMgQrRlB1RhW2BS9fYnVOv-jUaAnaAuHCOJb5esgXPZN9cYKZGnlqKnl8BLwXxvZ4UkEh7wkXU-w-Q1UbOtlRAHPF3yZHdnE_Ymuxh-BWQGyOzgqvvCwldLaXoL9H_Ble3he6GrkJ_7T4tRYMp0r0nHeaTjL_1uvamHjzIcsgV5Ct7knoIurdTAVmqVopHurpOXuxmYglBlBBCEsYBGbeNez4NIZ3qv_IEG_JdBll3zuV3wfBcUcyfEB911mt0NOth_RJOWKcuYlsJszNrAVr0YDexRELbonpCQnfZiVxcYn0UhucVcU5tu0ai2I9oFYecQklqzyxCBDy4UA8DXsCKJnlZgIoq2TmMGqGFvhv-avE-WzX1DVtu3OnB0ky3p3oZlj8Lz9oz2u8uZyIL72G5a9ZHz4eWxGSh4RwmXPNLvW51H8"))
     }
 }
