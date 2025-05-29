@@ -1,8 +1,14 @@
 use std::sync::Arc;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use lib::CargoService;
+use lib::ModuleService;
+use lib::MountService;
+use lib::ScanService;
 use lib::ServerService;
+use lib::ShipService;
 use lib::SystemService;
+use lib::NavigateService;
 use tracing::{info, error};
 use lib::SpaceTradersService;
 use lib::AgentService;
@@ -58,6 +64,10 @@ enum Commands {
     Waypoint {
         #[command(subcommand)]
         target: subcommands::declarations::WaypointCmd
+    },
+    Ship {
+        #[command(subcommand)]
+        target: subcommands::declarations::ShipCmd
     }
 }
 
@@ -74,6 +84,21 @@ async fn main() -> anyhow::Result<()> {
     let contract_service = Arc::new(ContractService::new(cfg.clone(), agent_service.clone(), spacetraders_service.clone()));
     let faction_service = Arc::new(FactionService::new(cfg.clone(), spacetraders_service.clone()));
     let system_service = Arc::new(SystemService::new(cfg.clone(), spacetraders_service.clone(), agent_service.clone()));
+    let cargo_service = Arc::new(CargoService::new(cfg.clone(), spacetraders_service.clone()));
+    let scanner_service = Arc::new(ScanService::new(cfg.clone(), spacetraders_service.clone()));
+    let navigator_service = Arc::new(NavigateService::new(cfg.clone(), spacetraders_service.clone()));
+    let mount_service = Arc::new(MountService::new(cfg.clone(), spacetraders_service.clone()));
+    let module_service = Arc::new(ModuleService::new(cfg.clone(), spacetraders_service.clone()));
+    let ship_service = Arc::new(ShipService::new(
+        cfg.clone(), 
+        spacetraders_service.clone(), 
+        agent_service.clone(),
+        cargo_service.clone(),
+        scanner_service.clone(),
+        navigator_service.clone(),
+        mount_service.clone(),
+        module_service.clone()
+    ));
 
     // Match the CLI  command
     match cli.command {
@@ -117,6 +142,10 @@ async fn main() -> anyhow::Result<()> {
 
         Commands::Waypoint { target } => {
             subcommands::definitions::waypoint_actions(&system_service, &target).await;
+        }
+
+        Commands::Ship { target } => {
+            subcommands::definitions::ship_actions(&ship_service, &target).await;
         }
     }
 

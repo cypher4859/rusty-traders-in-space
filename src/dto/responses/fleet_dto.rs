@@ -178,10 +178,25 @@ pub struct MountRequirementsDTO {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct CargoDataEnvelopeDTO {
+    pub data: CargoDTO
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CargoCargoDataEnvelopeDTO {
+    pub data: CargoCargoEnvelopeDTO
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CargoCargoEnvelopeDTO {
+    pub cargo: CargoDTO
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CargoDTO { 
-    pub capacity:       u32,
-    pub units:          u32,
-    pub inventory:      Vec<InventoryItemDTO>
+    pub capacity:       Option<u32>,
+    pub units:          Option<u32>,
+    pub inventory:      Option<Vec<InventoryItemDTO>>
 }
 
 #[derive(Debug, Deserialize, Serialize)]

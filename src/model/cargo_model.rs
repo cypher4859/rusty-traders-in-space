@@ -5,19 +5,19 @@ use super::{InventoryItem};
 
 #[derive(Debug, Clone)]
 pub struct Cargo {
-    pub capacity: u32,
-    pub units:    u32,
-    pub inventory: Vec<InventoryItem>,
+    pub capacity: Option<u32>,
+    pub units:    Option<u32>,
+    pub inventory: Option<Vec<InventoryItem>>,
 }
 
 impl Cargo {
     pub fn new(
-        capacity: u32, 
-        units: u32, 
-        inventory: Vec<InventoryItem>
+        capacity: Option<u32>, 
+        units: Option<u32>, 
+        inventory: Option<Vec<InventoryItem>>
     ) -> anyhow::Result<Self>
     {
-        ensure!(units <= capacity, "cargo units exceed capacity");
+        ensure!(Some(units) <= Some(capacity), "cargo units exceed capacity");
         Ok(Self { 
             capacity,
             units, 
@@ -30,11 +30,16 @@ impl TryFrom<CargoDTO> for Cargo {
     type Error = anyhow::Error;
 
     fn try_from(dto: CargoDTO) -> anyhow::Result<Self> {
-        let inventory = dto
-            .inventory
-            .into_iter()
-            .map(InventoryItem::try_from)
-            .collect::<anyhow::Result<Vec<_>>>()?;
+        // Option<Vec<InventoryItemDTO>> ─► Option<Vec<InventoryItem>>
+        let inventory: Option<Vec<InventoryItem>> = match dto.inventory {
+            Some(list) => Some(
+                list.into_iter()
+                    .map(InventoryItem::try_from)
+                    .collect::<anyhow::Result<Vec<_>>>()?,
+            ),
+            None => None,
+        };
+
         Cargo::new(dto.capacity, dto.units, inventory)
     }
 }

@@ -274,6 +274,24 @@
             },
             "args": ["system", "list"],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Cargo List",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["ship", "cargo", "list", "-s", "AELINDRACH-2"],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

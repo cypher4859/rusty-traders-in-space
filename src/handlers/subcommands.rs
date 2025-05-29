@@ -132,19 +132,6 @@ pub mod declarations {
         }
     }
 
-
-
-    #[derive(Subcommand)]
-    pub enum NavigateCmd {
-        Orbit,
-        Dock,
-        Navigate,
-        SetFlightMode,
-        Warp,
-        Jump,
-        Refuel
-    }
-
     #[derive(Subcommand)]
     pub enum FactionCmd {
         ShowAll,
@@ -158,6 +145,164 @@ pub mod declarations {
     pub enum MarketCmd {
         Supply
     }
+
+    #[derive(Subcommand)]
+    pub enum FleetCmd {
+        Ships,
+        Purchase {
+            #[arg(short, long)]
+            ship_type: String,
+            #[arg(short, long)]
+            waypoint: String,
+        },
+        #[command(subcommand)]
+        Ship(ShipCmd),
+        // Orbit,
+        // Refine,
+        // Chart,
+        // GetCooldown,
+        // Dock,
+        // Survey,
+        // Extract,
+        // Siphon,
+        // Jettison,
+        // Jump,
+        // Warp,
+        // Navigate,
+        // PatchNavigation,
+        // Navigation,
+        // #[command(subcommand)]
+        // Scan(ScanCmd),
+        // Refuel,
+        // #[command(subcommand)]
+        // Mounts(MountCmd),
+        // #[command(subcommand)]
+        // Scrap(ScrapCmd),
+        // #[command(subcommand)]
+        // Repair(RepairCmd),
+        // #[command(subcommand)]
+        // Modules(ModuleCmd)
+    }
+
+    #[derive(Subcommand)]
+    pub enum CargoCmd {
+        List {
+            #[arg(short, long)]
+            ship: String,
+        },
+        Purchase {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            item: String,
+            #[arg(short, long)]
+            units: u32
+        },
+        Sell {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            item: String,
+            #[arg(short, long)]
+            units: u32
+        },
+        Transfer {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            item: String,
+            #[arg(short, long)]
+            units: u32
+        },
+        Jettison {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            item: String,
+            #[arg(short, long)]
+            units: u32
+        },
+    }
+
+    #[derive(Subcommand)]
+    pub enum ScanCmd {
+        Systems,
+        Waypoints,
+        Ships
+    }
+
+    #[derive(Subcommand)]
+    pub enum ShipCmd {
+        #[command(subcommand)]
+        Cargo(CargoCmd),
+        Chart,
+        #[command(subcommand)]
+        Reactor(ReactorCmd),
+        #[command(subcommand)]
+        Navigate(NavigateCmd),
+        #[command(subcommand)]
+        Scan(ScanCmd),
+        Refuel,
+        #[command(subcommand)]
+        Mounts(MountCmd),
+        #[command(subcommand)]
+        Scrap(ScrapCmd),
+        #[command(subcommand)]
+        Repair(RepairCmd),
+        #[command(subcommand)]
+        Modules(ModuleCmd),
+        #[command(subcommand)]
+        Resources(ResourcesCmd)
+    }
+
+    #[derive(Subcommand)]
+    pub enum ReactorCmd {
+        Status
+    }
+
+    #[derive(Subcommand)]
+    pub enum ResourcesCmd {
+        Refine,
+        Survey,
+        Extract,
+        Siphon,
+    }
+
+    #[derive(Subcommand)]
+    pub enum NavigateCmd {
+        Orbit,
+        Dock,
+        Navigate,
+        SetFlightMode,
+        Warp,
+        Jump,
+    }
+
+    #[derive(Subcommand)]
+    pub enum MountCmd {
+        List,
+        Install,
+        Remove
+    }
+
+    #[derive(Subcommand)]
+    pub enum ModuleCmd {
+        List,
+        Install,
+        Remove
+    }
+
+    #[derive(Subcommand)]
+    pub enum RepairCmd {
+        Status,
+        Initiate
+    }
+
+    #[derive(Subcommand)]
+    pub enum ScrapCmd {
+        Status,
+        Initiate
+    }
 }
 
 
@@ -167,8 +312,9 @@ pub mod definitions {
     use crate::{model::faction_model::Faction, services::contract::ContractService};
     use crate::services::agent::AgentService;
     use crate::services::faction::{self, FactionService};
-    use crate::{Config, MarketService, ServerService, SystemService};
-    use super::declarations::{AgentCmd, ContractCmd, FactionCmd, MarketCmd, NavigateCmd, ServerCmd, ShowCmd, SystemCmd, WaypointCmd};
+    use crate::{Config, MarketService, ServerService, ShipService, SystemService};
+
+    use super::declarations::{AgentCmd, CargoCmd, ContractCmd, FactionCmd, FleetCmd, MarketCmd, ModuleCmd, MountCmd, NavigateCmd, ReactorCmd, RepairCmd, ResourcesCmd, ScanCmd, ScrapCmd, ServerCmd, ShipCmd, ShowCmd, SystemCmd, WaypointCmd};
 
     pub async fn server(target: &ServerCmd, server_svc: &ServerService) -> Result<(), ()> {
         match target {
@@ -233,7 +379,6 @@ pub mod definitions {
             NavigateCmd::Dock => println!("Handling navigating"),
             NavigateCmd::Jump => println!("Handling jump"),
             NavigateCmd::Navigate => println!("Handling navigation"),
-            NavigateCmd::Refuel => println!("Handling refueling"),
             NavigateCmd::SetFlightMode => println!("Handling set flight mode"),
             NavigateCmd::Warp => println!("Handling Warp initialization")
         }
@@ -270,6 +415,60 @@ pub mod definitions {
             WaypointCmd::Jumpgate { waypoint } => system_svc.get_jumpgate(waypoint).await,
             WaypointCmd::Market { waypoint } => system_svc.get_market(waypoint).await,
             WaypointCmd::Construction { waypoint } => system_svc.get_construction_site(waypoint).await
+        }
+    }
+
+    pub async fn ship_actions(ship_svc: &ShipService, target: &ShipCmd) -> anyhow::Result<()> {
+        match target {
+            ShipCmd::Cargo(cmd) => match cmd {
+                        CargoCmd::List { ship } => ship_svc.list_cargo(ship).await,
+                        CargoCmd::Purchase { ship, item, units} => ship_svc.purchase_cargo(ship, item, *units).await,
+                        CargoCmd::Sell { ship, item, units }  => ship_svc.sell_cargo(ship, item, *units).await,
+                        CargoCmd::Transfer { ship, item, units } => ship_svc.transfer_cargo(ship, item, *units).await,
+                        CargoCmd::Jettison { ship, item, units } => ship_svc.jettison_cargo(ship, item, *units).await
+                    },
+            ShipCmd::Chart => ship_svc.create_chart().await,
+            ShipCmd::Reactor(reactor_cmd) => match reactor_cmd {
+                ReactorCmd::Status => ship_svc.get_reactor_status().await,
+            },
+            ShipCmd::Navigate(navigate_cmd) => match navigate_cmd {
+                NavigateCmd::Orbit => ship_svc.navigate_orbit().await,
+                NavigateCmd::Dock => ship_svc.dock_at_station().await,
+                NavigateCmd::Navigate => ship_svc.get_navigation_status().await,
+                NavigateCmd::SetFlightMode => ship_svc.set_flight_mode().await,
+                NavigateCmd::Warp => ship_svc.warp_ship().await,
+                NavigateCmd::Jump => ship_svc.jump_to_waypoint().await,
+            },
+            ShipCmd::Scan(scan_cmd) => match scan_cmd {
+                ScanCmd::Systems => ship_svc.scan_systems().await,
+                ScanCmd::Waypoints => ship_svc.scan_waypoints().await,
+                ScanCmd::Ships => ship_svc.scan_ships().await,
+            },
+            ShipCmd::Refuel => ship_svc.refuel_ship().await,
+            ShipCmd::Mounts(mount_cmd) => match mount_cmd {
+                MountCmd::List => ship_svc.list_mounts().await,
+                MountCmd::Install => ship_svc.install_mount().await,
+                MountCmd::Remove => ship_svc.remove_mount().await,
+            },
+            ShipCmd::Modules(module_cmd) => match module_cmd {
+                ModuleCmd::List => ship_svc.list_modules_by_ship().await,
+                ModuleCmd::Install => ship_svc.install_module_to_ship().await,
+                ModuleCmd::Remove => ship_svc.remove_module_from_ship().await,
+            },
+            ShipCmd::Scrap(scrap_cmd) => match scrap_cmd {
+                ScrapCmd::Status => ship_svc.get_scrap_ship_status().await,
+                ScrapCmd::Initiate => ship_svc.initiate_scrap_ship().await,
+            },
+            ShipCmd::Repair(repair_cmd) => match repair_cmd {
+                RepairCmd::Status => ship_svc.get_repair_status().await,
+                RepairCmd::Initiate => ship_svc.initiate_repair().await,
+            },
+            ShipCmd::Resources(material_cmd) => match material_cmd {
+                ResourcesCmd::Refine => todo!(),
+                ResourcesCmd::Survey => todo!(),
+                ResourcesCmd::Extract => todo!(),
+                ResourcesCmd::Siphon => todo!()
+            }
         }
     }
 }
