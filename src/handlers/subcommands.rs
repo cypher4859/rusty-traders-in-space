@@ -235,7 +235,10 @@ pub mod declarations {
     pub enum ShipCmd {
         #[command(subcommand)]
         Cargo(CargoCmd),
-        Chart,
+        Chart {
+            #[arg(short, long)]
+            ship: String,
+        },
         #[command(subcommand)]
         Reactor(ReactorCmd),
         #[command(subcommand)]
@@ -257,7 +260,10 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum ReactorCmd {
-        Status
+        Status {
+            #[arg(short, long)]
+            ship: String,
+        }
     }
 
     #[derive(Subcommand)]
@@ -427,9 +433,9 @@ pub mod definitions {
                         CargoCmd::Transfer { ship, item, units } => ship_svc.transfer_cargo(ship, item, *units).await,
                         CargoCmd::Jettison { ship, item, units } => ship_svc.jettison_cargo(ship, item, *units).await
                     },
-            ShipCmd::Chart => ship_svc.create_chart().await,
+            ShipCmd::Chart { ship } => ship_svc.create_chart(ship).await,
             ShipCmd::Reactor(reactor_cmd) => match reactor_cmd {
-                ReactorCmd::Status => ship_svc.get_reactor_status().await,
+                ReactorCmd::Status { ship } => ship_svc.get_reactor_status(ship).await,
             },
             ShipCmd::Navigate(navigate_cmd) => match navigate_cmd {
                 NavigateCmd::Orbit => ship_svc.navigate_orbit().await,

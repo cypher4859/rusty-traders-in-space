@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InventoryItemDTO {
     pub item_symbol:    String, // TODO: Setup the Inventory enum of all the goods Symbols and plug it in here
     pub name:           String,

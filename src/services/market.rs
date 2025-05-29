@@ -21,7 +21,7 @@ impl MarketService {
     }
     async fn _get_market_supply_chain(&self) -> anyhow::Result<()> {
         let endpoint: String = String::from("market/supply-chain");
-        let result: Result<MarketSupplyChainDTO, anyhow::Error> = self.st.get::<MarketSupplyChainDTO>(&endpoint).await;
+        let result = self.st.get::<MarketSupplyChainDTO>(&endpoint).await;
         Ok(())
     }
 }

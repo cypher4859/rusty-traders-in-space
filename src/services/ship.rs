@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use crate::config::Config;
+use crate::dto::responses::fleet_dto::CooldownEnvelopeDTO;
+use crate::dto::responses::system_dto::ChartDataEnvelopeDTO;
 use crate::services::agent;
 use crate::services::contract;
 use crate::AgentService;
@@ -174,13 +176,17 @@ impl ShipService {
         Ok(())
     }
 
-    pub async fn create_chart(&self) -> anyhow::Result<()> {
-        todo!();
+    pub async fn create_chart(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self._create_chart(&agent_token, ship_symbol).await?;
         Ok(())
     }
 
-    pub async fn get_reactor_status(&self) -> anyhow::Result<()> {
-        todo!();
+    pub async fn get_reactor_status(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self._get_reactor_status(&agent_token, ship_symbol).await?;
         Ok(())
     }
 
@@ -188,5 +194,19 @@ impl ShipService {
         // Ship Symbol ismade up for `[AGENT_SYMBOL]-[HEX_ID]` so we can split it out
         let mut parts = ship_symbol.splitn(2, "-");
         parts.next().unwrap().to_string()
+    }
+
+    pub async fn _create_chart(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<()> {
+        let endpoint: String = format!("my/ships/{}/chart", ship_symbol);
+        let headers = self.st.get_agent_headers(agent_token)?;
+        self.st.post_with_headers::<ChartDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
+        Ok(())
+    }
+
+    pub async fn _get_reactor_status(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<()> {
+        let endpoint: String = format!("my/ships/{}/cooldown", ship_symbol);
+        let headers = self.st.get_agent_headers(agent_token)?;
+        self.st.get_with_headers::<CooldownEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        Ok(())
     }
 }

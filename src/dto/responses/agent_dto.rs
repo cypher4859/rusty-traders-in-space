@@ -6,12 +6,12 @@ use crate::dto::responses::contract_dto::ContractDTO;
 use crate::dto::responses::fleet_dto::ShipDTO;
 use crate::dto::responses::util_dto::MetaDTO;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegisterEnvelopeDTO {
     pub data: RegisterDataDTO,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegisterDataDTO {
     pub token:    String,
     pub agent:    AgentDTO,
@@ -22,7 +22,7 @@ pub struct RegisterDataDTO {
 
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentRequestDTO {
     pub symbol:  String,
     pub faction: String,
@@ -30,25 +30,25 @@ pub struct AgentRequestDTO {
     pub email: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum AgentDataDTO {
     Single(AgentDTO),
     List(Vec<AgentDTO>),
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentEnvelopeWithMetaDTO {
     pub data: AgentDataDTO,
     pub meta: MetaDTO
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentEnvelopeDTO {
     pub data: AgentDataDTO,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentDTO {
     #[serde(rename = "accountId", default)]
     pub account_id: Option<String>,

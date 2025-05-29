@@ -3,7 +3,7 @@ use anyhow::{Result, anyhow, ensure};
 use crate::InventoryItemDTO;
 
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ShipDTO {
     pub symbol: String,
     pub registration: RegistrationDTO,
@@ -20,7 +20,7 @@ pub struct ShipDTO {
 }
 
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegistrationDTO {
     pub name:          String,
     #[serde(rename = "factionSymbol")]
@@ -28,7 +28,7 @@ pub struct RegistrationDTO {
     pub role:          String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NavDTO { 
     #[serde(rename = "systemSymbol")]
     pub system_symbol:          String,
@@ -40,7 +40,7 @@ pub struct NavDTO {
     pub flight_mode:            String
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NavRouteDTO {
     pub destination:        NavRouteLocationDTO,
     pub origin:             NavRouteLocationDTO,
@@ -49,7 +49,7 @@ pub struct NavRouteDTO {
     pub arrival:            String
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NavRouteLocationDTO {
     pub symbol:             String,
     #[serde(rename = "type")]
@@ -62,7 +62,7 @@ pub struct NavRouteLocationDTO {
     pub location_coordinate_y: i32
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CrewDTO { 
     pub current:    u16,
     pub required:   u16,
@@ -72,7 +72,7 @@ pub struct CrewDTO {
     pub wages:      i64
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FrameDTO { 
     #[serde(rename = "symbol")]
     pub frame_symbol:         String,
@@ -91,14 +91,14 @@ pub struct FrameDTO {
     pub quality: u8
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FrameRequirementsDTO {
     pub power:      i32,
     pub crew:       i32,
     pub slots:      Option<i32>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ReactorDTO { 
     #[serde(rename = "symbol")]
     pub reactor_symbol:         String,
@@ -113,14 +113,14 @@ pub struct ReactorDTO {
     pub quality:        u8
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ReactorRequirementsDTO {
     pub power: Option<i32>,
     pub crew: i32,
     pub slots: Option<i32>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EngineDTO { 
     #[serde(rename = "symbol")]
     pub engine_symbol:         String,
@@ -134,14 +134,14 @@ pub struct EngineDTO {
     pub quality:        u8
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EngineRequirementsDTO {
     pub power:          i32,
     pub crew:           i32,
     pub slots:          Option<i32>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModuleDTO { 
     #[serde(rename = "symbol")]
     pub module_symbol:  String,
@@ -152,14 +152,14 @@ pub struct ModuleDTO {
     pub capacity:       Option<u16>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModuleRequirementsDTO {
     pub power:          Option<i32>,
     pub crew:           i32,
     pub slots:          Option<i32>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MountDTO {
     #[serde(rename = "symbol")]
     pub mount_symbol:   String,
@@ -170,36 +170,36 @@ pub struct MountDTO {
     pub strength:       Option<u16>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MountRequirementsDTO {
     pub power:          Option<i32>,
     pub crew:           i32,
     pub slots:          Option<i32>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CargoDataEnvelopeDTO {
     pub data: CargoDTO
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CargoCargoDataEnvelopeDTO {
     pub data: CargoCargoEnvelopeDTO
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CargoCargoEnvelopeDTO {
     pub cargo: CargoDTO
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CargoDTO { 
     pub capacity:       Option<u32>,
     pub units:          Option<u32>,
     pub inventory:      Option<Vec<InventoryItemDTO>>
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FuelDTO { 
     pub current:        u32,
     pub capacity:       u32,
@@ -207,13 +207,18 @@ pub struct FuelDTO {
     pub fuel_consumed:       Option<FuelConsumedDTO>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FuelConsumedDTO {
     pub amount:     u32,
     pub timestamp:  String
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CooldownEnvelopeDTO { 
+    pub data: Option<CooldownDTO>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CooldownDTO { 
     #[serde(rename = "shipSymbol")]
     pub ship_symbol:        String,

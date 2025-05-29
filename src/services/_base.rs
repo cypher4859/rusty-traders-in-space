@@ -1,6 +1,7 @@
 use reqwest::Client;
 use anyhow::Result;
-use owo_colors::OwoColorize;          // cargo add owo-colors
+use owo_colors::OwoColorize;
+use tungstenite::http::request;          // cargo add owo-colors
 use std::fmt::Debug;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Serialize, de::DeserializeOwned};   // ← blanket trait for any owned deserialisable type
@@ -59,7 +60,7 @@ impl SpaceTradersService {
         }
     }
 
-    pub async fn get<T>(&self, endpoint: &String) -> Result<T>
+    pub async fn get<T>(&self, endpoint: &String) -> Result<Option<T>>
     where
         T: DeserializeOwned + Serialize + Debug,   // <- same bounds
     {
@@ -70,7 +71,7 @@ impl SpaceTradersService {
         &self,
         endpoint: &str,
         extra: Option<HeaderMap>,
-    ) -> anyhow::Result<T>
+    ) -> anyhow::Result<Option<T>>
     where
         T: DeserializeOwned + Serialize + Debug,
     {
@@ -91,15 +92,27 @@ impl SpaceTradersService {
         Ok((hdr))
     }
 
-    pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug, B: Serialize + ?Sized {
+    pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug + Clone, B: Serialize + ?Sized {
         self.post_with_headers::<T, B>(endpoint, body, None).await
     }
 
-    pub async fn post_with_headers<T, B>(&self, endpoint: &String, body: Option<&B>, extra: Option<HeaderMap>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug, B: Serialize + ?Sized {
-        let result = self.send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body, extra).await;
-        self.display_api_result(&format!("POST {endpoint}"), &result);
-        result
-
+    pub async fn post_with_headers<T, B>(
+        &self,
+        endpoint: &str,
+        body: Option<&B>,
+        extra: Option<HeaderMap>,
+    ) -> anyhow::Result<T>
+    where
+        T: DeserializeOwned + Serialize + Debug + Clone,
+        B: Serialize + ?Sized,
+    {
+        let wrapped = self
+            .send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body, extra)
+            .await?
+            .expect("POST endpoints must return a body");
+    
+        self.display_api_result(&format!("POST {endpoint}"), &Ok(wrapped.clone()));
+        Ok(wrapped)
     }
 
     pub async fn send_request<T, B>(
@@ -108,7 +121,7 @@ impl SpaceTradersService {
         http_method: SupportedHttpMethods,
         body: Option<&B>,
         extra_headers: Option<HeaderMap>,
-    ) -> anyhow::Result<T>
+    ) -> anyhow::Result<Option<T>>
     where
         T: DeserializeOwned,
         B: Serialize + ?Sized,
@@ -117,10 +130,12 @@ impl SpaceTradersService {
             SupportedHttpMethods::Get => {
                 self._get_request_by_http::<T>(endpoint, extra_headers).await
             }
+    
             SupportedHttpMethods::Post => {
-                let b = body.ok_or_else(|| anyhow::anyhow!("POST needs a body"))?;
-                self._post_request_by_http::<T, B>(endpoint, b, extra_headers)
-                    .await
+                let value = self
+                    ._post_request_by_http::<T, B>(endpoint, body, extra_headers)
+                    .await?;
+                Ok(Some(value))         // ← no semicolon here
             }
         }
     }
@@ -129,7 +144,7 @@ impl SpaceTradersService {
         &self,
         endpoint: &str,
         extra: Option<HeaderMap>,
-    ) -> anyhow::Result<T>
+    ) -> anyhow::Result<Option<T>>
     where
         T: DeserializeOwned,
     {
@@ -139,15 +154,21 @@ impl SpaceTradersService {
         if let Some(h) = extra {
             req = req.headers(h);
         }
+
+        let resp = req.send().await?.error_for_status()?;
+
+        if resp.status() == reqwest::StatusCode::NO_CONTENT {
+            return Ok(None);
+        }
     
-        let value = req.send().await?.error_for_status()?.json::<T>().await?;
-        Ok(value)
+        let value = resp.json::<T>().await?;
+        Ok(Some(value))
     }
     
     async fn _post_request_by_http<T, B>(
         &self,
         endpoint: &str,
-        body: &B,
+        body: Option<&B>,
         extra: Option<HeaderMap>,
     ) -> anyhow::Result<T>
     where
@@ -155,10 +176,14 @@ impl SpaceTradersService {
         B: Serialize + ?Sized,
     {
         let url = format!("{}/{}", self.base, endpoint);
-        let mut req = self.http.post(url).json(body);
+        let mut req = self.http.post(url);
     
         if let Some(h) = extra {
             req = req.headers(h);
+        }
+
+        if let Some(payload) = body {
+            req = req.json(payload);
         }
     
         let value = req.send().await?.error_for_status()?.json::<T>().await?;

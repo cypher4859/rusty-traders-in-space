@@ -4,37 +4,37 @@ use crate::dto::responses::util_dto::MetaDTO;
 
 use super::fleet_dto::CargoDTO;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum ContractDataDTO {
     Single(ContractDTO),
     List(Vec<ContractDTO>),
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractEnvelopeWithMetaDTO {
     pub data: ContractDataDTO,
     pub meta: MetaDTO
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractEnvelopeDTO {
     pub data: ContractDataDTO,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractAndCargoEnvelopeDTO {
     pub data: ContractDataWithCargoDTO,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractDataWithCargoDTO {
     pub contract: ContractDTO,
     pub cargo: CargoDTO
 }
 
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractDTO {
     pub id:            String,
     #[serde(rename = "factionSymbol")]
@@ -49,14 +49,14 @@ pub struct ContractDTO {
     pub deadline_to_accept: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractTermsDTO {
     pub deadline: String,
     pub payment:  PaymentDTO,
     pub deliver:  Vec<DeliverDTO>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PaymentDTO {
     #[serde(rename = "onAccepted")]
     pub on_accepted: i64,
@@ -64,7 +64,7 @@ pub struct PaymentDTO {
     pub on_fulfilled: i64,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DeliverDTO {
     #[serde(rename = "tradeSymbol")]
     pub trade_symbol: String,

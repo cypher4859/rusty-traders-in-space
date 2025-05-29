@@ -22,7 +22,7 @@ impl ServerService {
     }
     async fn _get_status(&self) -> Result<(), ()> {
         let endpoint: String = String::from("");
-        let result: Result<ServerStatusDTO, anyhow::Error> = self.st.get::<ServerStatusDTO>(&endpoint).await;
+        let result = self.st.get::<ServerStatusDTO>(&endpoint).await;
         Ok(())
     }
 }

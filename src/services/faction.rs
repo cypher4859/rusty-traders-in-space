@@ -28,7 +28,7 @@ impl FactionService {
     async fn _search_factions(&self, faction_name: &String) -> anyhow::Result<(), ()> {
         let uppercase_faction_name = faction_name.to_uppercase();
         let endpoint: String = format!("factions/{uppercase_faction_name}");
-        let result: Result<FactionEnvelopeDTO, anyhow::Error> = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
+        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
         Ok(())
     }
 
