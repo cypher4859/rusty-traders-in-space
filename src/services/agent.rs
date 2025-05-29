@@ -71,6 +71,11 @@ impl AgentService {
         Ok(())
     }
 
+    pub async fn get_token_by_agent_symbol(&self, agent_id: &String) -> anyhow::Result<String> {
+        // FIXME: This should dynamically get the token by agent id
+        self._get_current_selected_agent_token().await
+    }
+
     pub async fn find_current_agent(&self) -> anyhow::Result<Agent> {
         println!("Handling finding current agent");
         self._get_current_selected_agent().await
