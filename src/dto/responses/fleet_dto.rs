@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 use crate::InventoryItemDTO;
+use super::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO};
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -19,6 +20,11 @@ pub struct ShipDTO {
     pub cooldown: CooldownDTO,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipStatusEventDTO {
+
+}
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegistrationDTO {
@@ -26,40 +32,6 @@ pub struct RegistrationDTO {
     #[serde(rename = "factionSymbol")]
     pub faction_symbol: String,
     pub role:          String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NavDTO { 
-    #[serde(rename = "systemSymbol")]
-    pub system_symbol:          String,
-    #[serde(rename = "waypointSymbol")]
-    pub waypoint_symbol:        String,
-    pub route:                  NavRouteDTO,
-    pub status:                 String,
-    #[serde(rename = "flightMode")]
-    pub flight_mode:            String
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NavRouteDTO {
-    pub destination:        NavRouteLocationDTO,
-    pub origin:             NavRouteLocationDTO,
-    #[serde(rename = "departureTime")]
-    pub departure_time:     String,
-    pub arrival:            String
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NavRouteLocationDTO {
-    pub symbol:             String,
-    #[serde(rename = "type")]
-    pub destination_type:   String,
-    #[serde(rename = "systemSymbol")]
-    pub system_symbol:      String,
-    #[serde(rename = "x")]
-    pub location_coordinate_x: i32,
-    #[serde(rename = "y")]
-    pub location_coordinate_y: i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -225,5 +197,7 @@ pub struct CooldownDTO {
     #[serde(rename = "totalSeconds")]
     pub total_seconds:      u32,
     #[serde(rename = "remainingSeconds")]
-    pub remaining_seconds:  u32
+    pub remaining_seconds:  u32,
+    pub expiration:         Option<String>
+    
 }

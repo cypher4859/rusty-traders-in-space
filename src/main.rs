@@ -133,7 +133,7 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Commands::Navigate { target } => {
-            subcommands::definitions::navigate(&target);
+            subcommands::definitions::navigate(&ship_service, &target);
         }
 
         Commands::System { target } => {

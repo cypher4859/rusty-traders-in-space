@@ -81,33 +81,52 @@ impl ShipService {
         Ok(())
     }
 
-    pub async fn navigate_orbit(&self) -> anyhow::Result<()> {
-        self.navigator.navigate_orbit().await?;
+    pub async fn navigate_orbit(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.navigate_orbit(&agent_token, ship_symbol).await?;
         Ok(())
     }
 
-    pub async fn dock_at_station(&self) -> anyhow::Result<()> {
-        self.navigator.dock_at_station().await?;
+    pub async fn navigate_to(&self, ship_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.navigate_to_waypoint(&agent_token, ship_symbol, waypoint_symbol).await?;
         Ok(())
     }
 
-    pub async fn get_navigation_status(&self) -> anyhow::Result<()> {
-        self.navigator.get_navigation_status().await?;
+    pub async fn dock_at_station(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.dock_at_station(&agent_token, ship_symbol).await?;
         Ok(())
     }
 
-    pub async fn set_flight_mode(&self) -> anyhow::Result<()> {
-        self.navigator.set_flight_mode().await?;
+    pub async fn get_navigation_status(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.get_navigation_status(&agent_token, ship_symbol).await?;
         Ok(())
     }
 
-    pub async fn warp_ship(&self) -> anyhow::Result<()> {
-        self.navigator.warp_ship().await?;
+    pub async fn set_flight_mode(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.set_flight_mode(&agent_token, ship_symbol).await?;
         Ok(())
     }
 
-    pub async fn jump_to_waypoint(&self) -> anyhow::Result<()> {
-        self.navigator.jump_to_waypoint().await?;
+    pub async fn warp_ship(&self, ship_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.warp_ship(&agent_token, ship_symbol, waypoint_symbol).await?;
+        Ok(())
+    }
+
+    pub async fn jump_to_waypoint(&self, ship_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self.navigator.jump_to_waypoint(&agent_token, ship_symbol, waypoint_symbol).await?;
         Ok(())
     }
 

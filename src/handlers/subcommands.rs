@@ -276,12 +276,40 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum NavigateCmd {
-        Orbit,
-        Dock,
-        Navigate,
-        SetFlightMode,
-        Warp,
-        Jump,
+        Orbit {
+            #[arg(short, long)]
+            ship: String,
+        },
+        Dock {
+            #[arg(short, long)]
+            ship: String,
+        },
+        Status {
+            #[arg(short, long)]
+            ship: String,
+        },
+        To {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            waypoint: String,
+        },
+        SetFlightMode {
+            #[arg(short, long)]
+            ship: String,
+        },
+        Warp {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            waypoint: String,
+        },
+        Jump {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            waypoint: String,
+        },
     }
 
     #[derive(Subcommand)]
@@ -379,14 +407,15 @@ pub mod definitions {
         Ok(())
     }
 
-    pub fn navigate(target: &NavigateCmd) -> Result<()> {
+    pub async fn navigate(ship_svc: &ShipService, target: &NavigateCmd) -> anyhow::Result<()> {
         match target {
-            NavigateCmd::Orbit => println!("Handling navigating to orbit"),
-            NavigateCmd::Dock => println!("Handling navigating"),
-            NavigateCmd::Jump => println!("Handling jump"),
-            NavigateCmd::Navigate => println!("Handling navigation"),
-            NavigateCmd::SetFlightMode => println!("Handling set flight mode"),
-            NavigateCmd::Warp => println!("Handling Warp initialization")
+            NavigateCmd::Orbit { ship } => ship_svc.navigate_orbit(ship).await?,
+            NavigateCmd::Dock { ship } => ship_svc.dock_at_station(ship).await?,
+            NavigateCmd::Status { ship } => ship_svc.get_navigation_status(ship).await?,
+            NavigateCmd::To { ship, waypoint } => ship_svc.navigate_to(ship, waypoint).await?,
+            NavigateCmd::SetFlightMode { ship } => ship_svc.set_flight_mode(ship).await?,
+            NavigateCmd::Warp { ship, waypoint } => ship_svc.warp_ship(ship, waypoint).await?,
+            NavigateCmd::Jump { ship, waypoint } => ship_svc.jump_to_waypoint(ship, waypoint).await?,
         }
         Ok(())
     }
@@ -438,12 +467,13 @@ pub mod definitions {
                 ReactorCmd::Status { ship } => ship_svc.get_reactor_status(ship).await,
             },
             ShipCmd::Navigate(navigate_cmd) => match navigate_cmd {
-                NavigateCmd::Orbit => ship_svc.navigate_orbit().await,
-                NavigateCmd::Dock => ship_svc.dock_at_station().await,
-                NavigateCmd::Navigate => ship_svc.get_navigation_status().await,
-                NavigateCmd::SetFlightMode => ship_svc.set_flight_mode().await,
-                NavigateCmd::Warp => ship_svc.warp_ship().await,
-                NavigateCmd::Jump => ship_svc.jump_to_waypoint().await,
+                NavigateCmd::Orbit { ship } => ship_svc.navigate_orbit(ship).await,
+                NavigateCmd::Dock { ship } => ship_svc.dock_at_station(ship).await,
+                NavigateCmd::Status { ship } => ship_svc.get_navigation_status(ship).await,
+                NavigateCmd::To { ship, waypoint } => ship_svc.navigate_to(ship, waypoint).await,
+                NavigateCmd::SetFlightMode { ship } => ship_svc.set_flight_mode(ship).await,
+                NavigateCmd::Warp { ship, waypoint } => ship_svc.warp_ship(ship, waypoint).await,
+                NavigateCmd::Jump { ship, waypoint } => ship_svc.jump_to_waypoint(ship, waypoint).await,
             },
             ShipCmd::Scan(scan_cmd) => match scan_cmd {
                 ScanCmd::Systems => ship_svc.scan_systems().await,
