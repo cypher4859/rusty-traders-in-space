@@ -1,6 +1,5 @@
 use std::sync::Arc;
 use crate::config::Config;
-use crate::model::FactionSymbol;
 use crate::{ServerStatusDTO, SpaceTradersService};
 use strum::IntoEnumIterator;
 

@@ -2,31 +2,10 @@ use std::{fmt::DebugStruct, str::FromStr};
 use strum_macros::{EnumIter};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::responses::fleet_dto::{EngineDTO, EngineRequirementsDTO};
+use crate::{constants::enum_lookups::EngineSymbol, dto::responses::fleet_dto::{EngineDTO, EngineRequirementsDTO}};
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum EngineSymbol {
-    EngineImpulseDriveI,
-    EngineIonDriveI,
-    EngineIonDriveII,
-    EngineHyperDriveI
-}
 
-impl FromStr for EngineSymbol {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_ascii_uppercase().as_str() {
-            "ENGINE_IMPULSE_DRIVE_I"    => Ok(EngineSymbol::EngineImpulseDriveI),
-            "ENGINE_ION_DRIVE_I"        => Ok(EngineSymbol::EngineIonDriveI),
-            "ENGINE_ION_DRIVE_II"       => Ok(EngineSymbol::EngineIonDriveII),
-            "ENGINE_HYPER_DRIVE_I"      => Ok(EngineSymbol::EngineHyperDriveI),
-            other                 => Err(anyhow::anyhow!("Unknown Engine '{other}'")),
-        }
-    }
-}
 
 
 #[derive(Debug, Clone)]

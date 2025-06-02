@@ -7,15 +7,39 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum ShowCmd {
-        Location,
-        Inventory,
+        Location {
+            #[arg(short, long)]
+            location: String
+        },
+        Cargo {
+            #[arg(short, long)]
+            ship: String
+        },
         Systems,
-        System,
-        Waypoints,
-        Waypoint,
-        Contracts,
-        Agents,
-        Factions,
+        System {
+            #[arg(short, long)]
+            system: String
+        },
+        Waypoints {
+            #[arg(short, long)]
+            system: String
+        },
+        Waypoint {
+            #[arg(short, long)]
+            waypoint: String
+        },
+        Contracts {
+            #[arg(short, long)]
+            agent: String
+        },
+        Agents {
+            #[arg(short, long, required = false)]
+            name: Option<String>
+        },
+        Factions {
+            #[arg(short, long, required = false)]
+            name: Option<String>
+        },
 
     }
 
@@ -346,7 +370,7 @@ pub mod definitions {
     use crate::{model::faction_model::Faction, services::contract::ContractService};
     use crate::services::agent::AgentService;
     use crate::services::faction::{self, FactionService};
-    use crate::{Config, MarketService, ServerService, ShipService, SystemService};
+    use crate::{Config, MarketService, NavigateService, ServerService, ShipService, SystemService};
 
     use super::declarations::{AgentCmd, CargoCmd, ContractCmd, FactionCmd, FleetCmd, MarketCmd, ModuleCmd, MountCmd, NavigateCmd, ReactorCmd, RepairCmd, ResourcesCmd, ScanCmd, ScrapCmd, ServerCmd, ShipCmd, ShowCmd, SystemCmd, WaypointCmd};
 
@@ -367,26 +391,39 @@ pub mod definitions {
         Ok(())
     }
 
-    pub fn show(target: &ShowCmd, contract_svc: &ContractService, agent_svc: &AgentService) -> Result<()> {
+    pub async fn show(
+        target: &ShowCmd, 
+        contract_svc: &ContractService, 
+        agent_svc: &AgentService,
+        server_svc: &ServerService,
+        navigator_svc: &NavigateService,
+        faction_svc: &FactionService,
+        market_svc: &MarketService,
+        system_svc: &SystemService,
+        ship_svc: &ShipService
+    ) -> anyhow::Result<()> {
         match target {
-            ShowCmd::Location => println!("Handling show location"),
-            ShowCmd::Inventory => println!("Handling show inventory"),
-            ShowCmd::Systems => println!("Handling show all systems"),
-            ShowCmd::System => println!("Handling showing system"),
-            ShowCmd::Waypoints => println!("Handling show waypoint"),
-            ShowCmd::Waypoint => println!("Handling showing single waypoint"),
-            ShowCmd::Contracts => println!("Handling show contracts"),
-            ShowCmd::Agents => println!("Handling show agents"),
-            ShowCmd::Factions => println!("Handling show factions")
+            ShowCmd::Location { location} => system_svc.show_location(location).await?,
+            ShowCmd::Cargo {ship} => ship_svc.list_cargo(ship).await?,
+            ShowCmd::Systems => system_svc.list_systems().await?,
+            ShowCmd::System { system} => system_svc.get_system(system).await?,
+            ShowCmd::Waypoints { system } => system_svc.list_waypoints_by_system(system).await?,
+            ShowCmd::Waypoint { waypoint } => system_svc.get_waypoint(waypoint).await?,
+            ShowCmd::Contracts { agent } => contract_svc.show_current_contracts(agent).await?,
+            ShowCmd::Agents { name } => agent_svc.list_agents(name).await?,
+            ShowCmd::Factions { name } => faction_svc.show_factions(name).await?
         }
         Ok(())
     }
 
-    pub async fn contract_action(contract_svc: &ContractService, target: &ContractCmd) -> Result<()> {
+    pub async fn contract_action(contract_svc: &ContractService, agent_svc: &AgentService, target: &ContractCmd) -> Result<()> {
         match target {
             ContractCmd::Accept { contract_id} => contract_svc.accept_contract(contract_id).await?,
             ContractCmd::Negotiate { contract_id } => contract_svc.negotiate_contract(contract_id).await?,
-            ContractCmd::Current => contract_svc.show_current_contracts().await?,
+            ContractCmd::Current => {
+                let agent_symbol = agent_svc.get_current_selected_agent_token().await?;
+                contract_svc.show_current_contracts(&agent_symbol).await?;
+            },
             ContractCmd::Find { contract_id} => contract_svc.find_contract(contract_id).await?,
             ContractCmd::Fulfill { contract_id } => contract_svc.fulfill_contract(contract_id).await?,
             ContractCmd::Deliver { contract_id } => contract_svc.deliver_contract(contract_id).await?

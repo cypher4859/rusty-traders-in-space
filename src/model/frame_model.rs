@@ -2,36 +2,8 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::responses::fleet_dto::{FrameDTO, FrameRequirementsDTO};
+use crate::{constants::enum_lookups::FrameSymbol, dto::responses::fleet_dto::{FrameDTO, FrameRequirementsDTO}};
 
-
-
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash,
-    Serialize, Deserialize,
-    EnumIter,            // → FrameSymbol::iter()
-    EnumString           // → FromStr + parse::<FrameSymbol>()
-)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
-pub enum FrameSymbol {
-    Probe,
-    Drone,
-    Interceptor,
-    Racer,
-    Fighter,
-    Frigate,
-    Shuttle,
-    Explorer,
-    Miner,
-    LightFreighter,
-    HeavyFreighter,
-    Transport,
-    Destroyer,
-    Cruiser,
-    Carrier,
-    BulkFreighter,
-}
 
 #[derive(Debug, Clone)]
 pub struct FrameRequirements {

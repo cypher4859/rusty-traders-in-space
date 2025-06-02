@@ -2,6 +2,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use lib::CargoService;
+use lib::MarketService;
 use lib::ModuleService;
 use lib::MountService;
 use lib::ScanService;
@@ -89,6 +90,7 @@ async fn main() -> anyhow::Result<()> {
     let navigator_service = Arc::new(NavigateService::new(cfg.clone(), spacetraders_service.clone()));
     let mount_service = Arc::new(MountService::new(cfg.clone(), spacetraders_service.clone()));
     let module_service = Arc::new(ModuleService::new(cfg.clone(), spacetraders_service.clone()));
+    let market_service = Arc::new(MarketService::new(spacetraders_service.clone(), cfg.clone()));
     let ship_service = Arc::new(ShipService::new(
         cfg.clone(), 
         spacetraders_service.clone(), 
@@ -117,11 +119,21 @@ async fn main() -> anyhow::Result<()> {
 
         Commands::Show { target } => {
             // info!("Showing {target}");
-            subcommands::definitions::show(&target, &contract_service, &agent_service);
+            subcommands::definitions::show(
+                &target,
+                &contract_service, 
+                &agent_service,
+                &server_service,
+                &navigator_service,
+                &faction_service,
+                &market_service,
+                &system_service,
+                &ship_service
+            ).await;
         }
 
         Commands::Contract { target } => {
-            subcommands::definitions::contract_action(&contract_service, &target).await;
+            subcommands::definitions::contract_action(&contract_service, &agent_service, &target).await;
         }
 
         Commands::Agent { target } => {

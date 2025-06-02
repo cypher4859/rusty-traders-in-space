@@ -3,6 +3,7 @@ mod services;
 mod config;
 mod dto;
 mod model;
+mod constants;
 pub use crate::handlers::subcommands;
 pub use crate::services::_base::SpaceTradersService;
 pub use crate::services::contract::ContractService;

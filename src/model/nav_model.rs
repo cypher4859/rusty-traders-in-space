@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 use strum_macros::{EnumIter, EnumString};
-use crate::dto::responses::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO};
+use crate::{constants::enum_lookups::WaypointType, dto::responses::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO}};
 
 use super::{ShipStatus, ShipFlightMode};
 
@@ -145,27 +145,4 @@ impl TryFrom<NavRouteLocationDTO> for NavRouteLocation {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash,
-    Serialize, Deserialize,           // JSON ↔ enum
-    EnumIter,                         // ShipStatus::iter()
-    EnumString                        // "IN_TRANSIT".parse::<ShipStatus>()
-)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
-pub enum WaypointType {
-    Planet,
-    GasGiant,
-    Moon,
-    OrbitalStation,
-    JumpGate,
-    AsteroidField,
-    Asteroid,
-    EngineeredAsteroid,
-    AsteroidBase,
-    Nebula,
-    DebrisField,
-    GravityWell,
-    ArtificialGravityWell,
-    FuelStation
-}
+

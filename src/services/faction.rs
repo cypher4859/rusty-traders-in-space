@@ -1,8 +1,6 @@
 use std::sync::Arc;
 use crate::config::Config;
-use crate::model::FactionSymbol;
 use crate::{FactionEnvelopeDTO, SpaceTradersService};
-use strum::IntoEnumIterator;
 
 pub struct FactionService {
     cfg: Arc<Config>,
@@ -15,6 +13,19 @@ impl FactionService {
             cfg,
             st
         }
+    }
+
+    pub async fn show_factions(&self, faction_name: &Option<String>) -> anyhow::Result<()> {
+        match faction_name {
+            Some(name) => {
+                self.search_factions(name).await;
+            }
+            None => {
+                self.show_all_factions().await;
+            }
+        }
+
+        Ok(())
     }
 
     pub async fn show_all_factions(&self) -> Result<(), ()> {

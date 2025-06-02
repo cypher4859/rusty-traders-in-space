@@ -2,23 +2,9 @@ use std::{fmt::DebugStruct, str::FromStr};
 use strum_macros::{EnumIter, EnumString};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::responses::fleet_dto::{ReactorDTO, ReactorRequirementsDTO};
+use crate::{constants::enum_lookups::ReactorSymbol, dto::responses::fleet_dto::{ReactorDTO, ReactorRequirementsDTO}};
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash,
-    Serialize, Deserialize,
-    EnumIter,            // ReactorSymbol::iter()
-    EnumString           // "REACTOR_SOLAR_I".parse::<ReactorSymbol>()
-)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
-pub enum ReactorSymbol {
-    SolarI,        // "REACTOR_SOLAR_I"
-    FusionI,       // "REACTOR_FUSION_I"
-    FissionI,      // "REACTOR_FISSION_I"
-    ChemicalI,     // "REACTOR_CHEMICAL_I"
-    AntimatterI,   // "REACTOR_ANTIMATTER_I"
-}
+
 
 #[derive(Debug, Clone)]
 pub struct Reactor {

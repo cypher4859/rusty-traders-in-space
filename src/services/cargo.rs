@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use std::{fmt::DebugStruct, str::FromStr};
 use crate::config::Config;
+use crate::constants::enum_lookups::InventoryItemSymbol;
 use crate::dto::requests::cargo_request_dto::{RequestCargoBuyDTO, RequestCargoJettisonDTO, RequestCargoSellDTO, RequestCargoTransferDTO};
 use crate::dto::responses::fleet_dto::{CargoCargoDataEnvelopeDTO, CargoDataEnvelopeDTO};
-use crate::model::inventory_model::InventoryItemSymbol;
 use crate::SpaceTradersService;
 
 #[derive(Clone)]

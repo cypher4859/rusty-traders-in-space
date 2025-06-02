@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use crate::model::faction_model::{Faction, Trait, TraitSymbol, FactionSymbol};
 use anyhow::{Result, anyhow, ensure};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

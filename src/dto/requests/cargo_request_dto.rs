@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 
-use crate::model::inventory_model::InventoryItemSymbol;
+use crate::constants::enum_lookups::InventoryItemSymbol;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RequestCargoJettisonDTO {

@@ -19,6 +19,17 @@ impl SystemService {
         Self { cfg, st, agent_svc }
     }
 
+    pub async fn show_location(&self, location: &String) -> anyhow::Result<()> {
+        if (self._is_system_symbol(location)) {
+            self.get_system(location).await;
+        } else if (self._is_waypoint_symbol(location)) {
+            self.get_waypoint(location).await;
+        }
+
+        format!("Symbol {} not found! Doesn't look like a system, doesn't look like a waypoint", location);
+        Ok(())
+    }
+
     pub async fn list_systems(&self) -> anyhow::Result<()> {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._list_systems(&agent_token).await?;
@@ -150,5 +161,18 @@ impl SystemService {
         let first = parts.next().unwrap();
         let second = parts.next().unwrap();
         format!("{first}-{second}").clone()
+    }
+
+    fn _count_the_dashes(&self, symbol: &String) -> usize {
+        symbol.matches("-").count()
+
+    }
+
+    fn _is_waypoint_symbol(&self, symbol: &String) -> bool {
+        self._count_the_dashes(symbol) == 3
+    }
+
+    fn _is_system_symbol(&self, symbol: &String) -> bool {
+        self._count_the_dashes(symbol) == 2
     }
 }

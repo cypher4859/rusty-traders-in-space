@@ -45,9 +45,10 @@ impl ContractService {
         Ok(())
     }
 
-    pub async fn show_current_contracts(&self) -> anyhow::Result<()> {
+    pub async fn show_current_contracts(&self, agent_symbol: &String) -> anyhow::Result<()> {
         println!("Handling showing current contracts");
-        let agent_token: String = self.agent_svc.get_current_selected_agent_token().await?;
+        let test_agent_symbol = String::from("Test");
+        let agent_token: String = self.agent_svc.get_token_by_agent_symbol(&test_agent_symbol).await?;
         self._list_contracts_owned_by_agent(&agent_token).await?;
         Ok(())
     }

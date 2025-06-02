@@ -3,6 +3,8 @@ use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter};
 
+use crate::constants::enum_lookups::FactionSymbol;
+use crate::constants::enum_lookups::TraitSymbol;
 use crate::FactionDTO;
 use crate::TraitDTO;
 
@@ -100,73 +102,4 @@ pub struct Trait {
     pub description: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TraitSymbol {
-    Bureaucratic
-}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum FactionSymbol {
-    Cosmic,
-    Void,
-    Galactic,
-    Quantum,
-    Dominion,
-    Astro,
-    Corsairs,
-    Obsidian,
-    Aegis,
-    United,
-    Solitary,
-    Cobalt,
-    Omega,
-    Echo,
-    Lords,
-    Cult,
-    Ancients,
-    Shadow,
-    Ethereal,
-}
-
-impl FromStr for FactionSymbol {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // Case‑insensitive match so "cosmic", "COSMIC", "Cosmic" all work.
-        match s.to_ascii_uppercase().as_str() {
-            "COSMIC"   => Ok(FactionSymbol::Cosmic),
-            "VOID"     => Ok(FactionSymbol::Void),
-            "GALACTIC" => Ok(FactionSymbol::Galactic),
-            "QUANTUM"  => Ok(FactionSymbol::Quantum),
-            "DOMINION" => Ok(FactionSymbol::Dominion),
-            "ASTRO"    => Ok(FactionSymbol::Astro),
-            "CORSAIRS" => Ok(FactionSymbol::Corsairs),
-            "OBSIDIAN" => Ok(FactionSymbol::Obsidian),
-            "AEGIS"    => Ok(FactionSymbol::Aegis),
-            "UNITED"   => Ok(FactionSymbol::United),
-            "SOLITARY" => Ok(FactionSymbol::Solitary),
-            "COBALT"   => Ok(FactionSymbol::Cobalt),
-            "OMEGA"    => Ok(FactionSymbol::Omega),
-            "ECHO"     => Ok(FactionSymbol::Echo),
-            "LORDS"    => Ok(FactionSymbol::Lords),
-            "CULT"     => Ok(FactionSymbol::Cult),
-            "ANCIENTS" => Ok(FactionSymbol::Ancients),
-            "SHADOW"   => Ok(FactionSymbol::Shadow),
-            "ETHEREAL" => Ok(FactionSymbol::Ethereal),
-            other => Err(anyhow::anyhow!("Unknown faction '{other}'")),
-        }
-    }
-}
-
-impl FromStr for TraitSymbol {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_ascii_uppercase().as_str() {
-            "BUREAUCRATIC"   => Ok(TraitSymbol::Bureaucratic),
-            other => Err(anyhow::anyhow!("Unknown faction '{other}'")),
-        }
-    }
-}
