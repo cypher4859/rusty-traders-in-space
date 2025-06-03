@@ -62,7 +62,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug: Show",
+            "name": "Debug: Show Systems",
             "cargo": {
                 "args": [
                     "build",
@@ -74,7 +74,43 @@
                     "kind": "bin"
                 }
             },
-            "args": ["show"],
+            "args": ["show", "systems"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Show Location (Waypoint)",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["show", "location", "-l", "X1-DZ40-A1"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Show Location (System)",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["show", "location", "-l", "X1-DZ40"],
             "cwd": "${workspaceFolder}"
         },
         {

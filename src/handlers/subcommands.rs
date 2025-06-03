@@ -9,7 +9,7 @@ pub mod declarations {
     pub enum ShowCmd {
         Location {
             #[arg(short, long)]
-            location: String
+            location: String,
         },
         Cargo {
             #[arg(short, long)]
@@ -22,7 +22,9 @@ pub mod declarations {
         },
         Waypoints {
             #[arg(short, long)]
-            system: String
+            system: String,
+            #[arg(short, long, required = false)]
+            waypoint_type: String
         },
         Waypoint {
             #[arg(short, long)]
@@ -36,6 +38,7 @@ pub mod declarations {
             #[arg(short, long, required = false)]
             name: Option<String>
         },
+        CurrentAgent,
         Factions {
             #[arg(short, long, required = false)]
             name: Option<String>
@@ -407,10 +410,11 @@ pub mod definitions {
             ShowCmd::Cargo {ship} => ship_svc.list_cargo(ship).await?,
             ShowCmd::Systems => system_svc.list_systems().await?,
             ShowCmd::System { system} => system_svc.get_system(system).await?,
-            ShowCmd::Waypoints { system } => system_svc.list_waypoints_by_system(system).await?,
+            ShowCmd::Waypoints { system, waypoint_type } => system_svc.list_waypoints_by_system(system).await?,
             ShowCmd::Waypoint { waypoint } => system_svc.get_waypoint(waypoint).await?,
             ShowCmd::Contracts { agent } => contract_svc.show_current_contracts(agent).await?,
             ShowCmd::Agents { name } => agent_svc.list_agents(name).await?,
+            ShowCmd::CurrentAgent => agent_svc.find_agent(&None, &true).await?,
             ShowCmd::Factions { name } => faction_svc.show_factions(name).await?
         }
         Ok(())

@@ -164,15 +164,14 @@ impl SystemService {
     }
 
     fn _count_the_dashes(&self, symbol: &String) -> usize {
-        symbol.matches("-").count()
-
+        symbol.chars().filter(|&c| c == '-').count()
     }
 
     fn _is_waypoint_symbol(&self, symbol: &String) -> bool {
-        self._count_the_dashes(symbol) == 3
+        self._count_the_dashes(symbol) == 2
     }
 
     fn _is_system_symbol(&self, symbol: &String) -> bool {
-        self._count_the_dashes(symbol) == 2
+        self._count_the_dashes(symbol) == 1
     }
 }
