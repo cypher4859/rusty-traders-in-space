@@ -80,6 +80,78 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug: Show Ships",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["show", "ships"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Orbit",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["ship", "navigate", "orbit", "-s", "AELINDRACH-1"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Navigate to X1-DZ40-F56",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["ship", "navigate", "to", "-w", "X1-DZ40-F56", "-s", "AELINDRACH-1"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Market X1-DZ40-F56",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["market", "details", "-w", "X1-DZ40-F56"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug: Show Location (Waypoint)",
             "cargo": {
                 "args": [
