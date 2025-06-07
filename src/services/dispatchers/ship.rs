@@ -1,10 +1,16 @@
 use std::sync::Arc;
+use anyhow::bail;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use crate::config::Config;
+use crate::dto::requests::fuel_request_dto::RequestRefuelShipDTO;
 use crate::dto::responses::fleet_dto::CooldownEnvelopeDTO;
+use crate::dto::responses::fleet_dto::ShipDataEnvelopeDTO;
+use crate::dto::responses::fleet_dto::ShipRefuelDataEnvelopeDTO;
 use crate::dto::responses::system_dto::ChartDataEnvelopeDTO;
-use crate::services::agent;
-use crate::services::contract;
+use crate::model::Ship;
+use crate::services::dispatchers::agent;
+use crate::services::dispatchers::contract;
+use crate::Agent;
 use crate::AgentService;
 use crate::CargoService;
 use crate::ModuleService;
@@ -44,6 +50,25 @@ impl ShipService {
             mount,
             module
         }
+    }
+
+    pub async fn show_ships(&self, agent_id: &Option<String>) -> anyhow::Result<()> {
+        // Get the number of ships and the ship names
+        let agent: Agent = self.agent_svc.get_agent(agent_id).await?;
+        let agent_symbol = agent.symbol;
+        for i in 0..agent.ship_count as usize {
+            let mut num = i + 1;
+            let mut ship_name = format!("{agent_symbol}-{num}");
+            self.get_ship(&ship_name).await;
+        }
+        Ok(())
+    }
+
+    pub async fn get_ship(&self, ship_name: &String) -> anyhow::Result<Ship> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_name);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        let ship = self._get_ship_by_symbol(&agent_token, ship_name).await?;
+        Ok(ship)
     }
 
     pub async fn list_cargo(&self, ship_symbol: &String) -> anyhow::Result<()> {
@@ -161,10 +186,12 @@ impl ShipService {
     }
 
     pub async fn get_scrap_ship_status(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 
     pub async fn initiate_scrap_ship(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 
@@ -183,15 +210,20 @@ impl ShipService {
         Ok(())
     }
 
-    pub async fn refuel_ship(&self) -> anyhow::Result<()> {
+    pub async fn refuel_ship(&self, ship_symbol: &String, use_cargo_fuel: &bool, units_of_fuel: &Option<u32>) -> anyhow::Result<()> {
+        let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
+        let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
+        self._refuel_ship(&agent_token, ship_symbol, use_cargo_fuel, units_of_fuel).await?;
         Ok(())
     }
 
     pub async fn get_repair_status(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 
     pub async fn initiate_repair(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 
@@ -227,5 +259,31 @@ impl ShipService {
         let headers = self.st.get_agent_headers(agent_token)?;
         self.st.get_with_headers::<CooldownEnvelopeDTO>(&endpoint, Some(headers)).await?;
         Ok(())
+    }
+
+    pub async fn _get_ship_by_symbol(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<Ship> {
+        let endpoint: String = format!("my/ships/{}", ship_symbol);
+        let headers = self.st.get_agent_headers(agent_token)?;
+        let ship_envelope: Option<ShipDataEnvelopeDTO> = self.st.get_with_headers::<ShipDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        match ship_envelope {
+            Some(envelope) => {
+                Ok(envelope.data.try_into()?)
+            }
+
+            None => {
+                bail!("Ship wasn't found by symbol {}", ship_symbol)
+            }
+        }
+    }
+
+    pub async fn _refuel_ship(&self, agent_token: &String, ship_symbol: &String, use_cargo_fuel: &bool, units_of_fuel: &Option<u32>) -> anyhow::Result<ShipRefuelDataEnvelopeDTO> {
+        let endpoint: String = format!("my/ships/{}/refuel", ship_symbol);
+        let headers = self.st.get_agent_headers(agent_token)?;
+        let body = RequestRefuelShipDTO::new(
+            use_cargo_fuel.clone(),
+            units_of_fuel.clone()
+        )?;
+        let resp: ShipRefuelDataEnvelopeDTO = self.st.post_with_headers::<ShipRefuelDataEnvelopeDTO, RequestRefuelShipDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        Ok(resp)
     }
 }

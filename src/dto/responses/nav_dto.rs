@@ -4,11 +4,21 @@ use crate::dto::responses::fleet_dto::ShipDTO;
 use crate::dto::responses::util_dto::MetaDTO;
 use crate::AgentDTO;
 use super::fleet_dto::{CooldownDTO, FuelDTO, ShipStatusEventDTO};
-use super::system_dto::MarketTxDTO;
+use super::supply_chain_dto::MarketTxDTO;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NavigateStatusDataEnvelopeDTO {
     pub data: NavDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NavigateOrbitDataEnvelopeDTO {
+    pub data: NavigateOrbitEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NavigateOrbitEnvelopeDTO {
+    pub nav: NavDTO
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

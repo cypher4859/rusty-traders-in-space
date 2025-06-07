@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use crate::config::Config;
-use crate::dto::responses::system_dto::{ConstructionSiteEnvelopeDTO, JumpGateEnvelopeDTO, MarketEnvelopeDTO, ShipyardEnvelopeDTO, SystemDTO, SystemEnvelopeDTO, SystemListEnvelopeDTO, WaypointEnvelopeDTO, WaypointListEnvelopeDTO};
+use crate::dto::responses::supply_chain_dto::MarketEnvelopeDTO;
+use crate::dto::responses::system_dto::{ConstructionSiteEnvelopeDTO, JumpGateEnvelopeDTO, ShipyardEnvelopeDTO, SystemDTO, SystemEnvelopeDTO, SystemListEnvelopeDTO, WaypointEnvelopeDTO, WaypointListEnvelopeDTO};
 use crate::{RegisterEnvelopeDTO, RegisterDataDTO, SpaceTradersService, AgentService};
 // use crate::model::system_model::System;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
@@ -49,42 +50,42 @@ impl SystemService {
     }
 
     pub async fn get_waypoint(&self, waypoint_symbol: &String) -> anyhow::Result<()> {
-        let system_symbol = self._split_waypoint_to_get_system_symbol(waypoint_symbol);
+        let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._get_waypoint_by_symbol(&agent_token, &system_symbol, waypoint_symbol).await?;
         Ok(())
     }
 
     pub async fn get_market(&self, waypoint_symbol: &String) -> anyhow::Result<()> {
-        let system_symbol = self._split_waypoint_to_get_system_symbol(waypoint_symbol);
+        let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._get_market_by_system_waypiont(&agent_token, &system_symbol, waypoint_symbol).await?;
         Ok(())
     }
 
     pub async fn get_shipyard(&self, waypoint_symbol: &String) -> anyhow::Result<()> {
-        let system_symbol = self._split_waypoint_to_get_system_symbol(waypoint_symbol);
+        let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._get_shipyard_by_system_waypiont(&agent_token, &system_symbol, waypoint_symbol).await?;
         Ok(())
     }
 
     pub async fn get_jumpgate(&self, waypoint_symbol: &String) -> anyhow::Result<()> {
-        let system_symbol = self._split_waypoint_to_get_system_symbol(waypoint_symbol);
+        let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._get_jumpgate_by_system_waypiont(&agent_token, &system_symbol, waypoint_symbol).await?;
         Ok(())
     }
 
     pub async fn get_construction_site(&self, waypoint_symbol: &String) -> anyhow::Result<()> {
-        let system_symbol = self._split_waypoint_to_get_system_symbol(waypoint_symbol);
+        let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._get_construction_site_by_system_waypiont(&agent_token, &system_symbol, waypoint_symbol).await?;
         Ok(())
     }
 
     pub async fn supply_construction_site(&self, waypoint_symbol: &String) -> anyhow::Result<()> {
-        let system_symbol = self._split_waypoint_to_get_system_symbol(waypoint_symbol);
+        let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         self._supply_construction_site_by_system_waypiont(&agent_token, &system_symbol, waypoint_symbol).await?;
         Ok(())
@@ -153,15 +154,11 @@ impl SystemService {
 
         // )?;
         // self.st.post_with_headers::<SystemEnvelopeWithMetaDTO, RequestSystemSupplyConstructionDTO>(&endpoint, body, Some(headers)).await?;
+        todo!();
         Ok(())
     }
 
-    fn _split_waypoint_to_get_system_symbol(&self, waypoint_symbol: &String) -> String {
-        let mut parts = waypoint_symbol.splitn(3, "-");
-        let first = parts.next().unwrap();
-        let second = parts.next().unwrap();
-        format!("{first}-{second}").clone()
-    }
+    
 
     fn _count_the_dashes(&self, symbol: &String) -> usize {
         symbol.chars().filter(|&c| c == '-').count()

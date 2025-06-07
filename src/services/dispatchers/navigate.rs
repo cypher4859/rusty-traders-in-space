@@ -6,11 +6,12 @@ use crate::dto::requests::nav_request_dto::RequestNavigateToWaypointDTO;
 use crate::dto::requests::nav_request_dto::RequestWarpToWaypointDTO;
 use crate::dto::responses::nav_dto::NavigateDockDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateJumpDataEnvelopeDTO;
+use crate::dto::responses::nav_dto::NavigateOrbitDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateStatusDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateWarpDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateWaypointDataEnvelopeDTO;
-use crate::services::agent;
-use crate::services::contract;
+use crate::services::dispatchers::agent;
+use crate::services::dispatchers::contract;
 use crate::SpaceTradersService;
 
 #[derive(Clone)]
@@ -29,6 +30,9 @@ impl NavigateService {
     
     // FIXME: The content of the pub functions needs to be abstracted away to private methods
     pub async fn navigate_orbit(&self, agent_token: &String, ship_symbol: &String,) -> anyhow::Result<()> {
+        let endpoint: String = format!("my/ships/{}/orbit", ship_symbol);
+        let headers = self.st.get_agent_headers(agent_token)?;
+        self.st.post_with_headers::<NavigateOrbitDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
         Ok(())
     }
 

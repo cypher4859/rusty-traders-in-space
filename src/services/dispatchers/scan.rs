@@ -1,33 +1,33 @@
 use std::sync::Arc;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use crate::config::Config;
-use crate::services::agent;
-use crate::services::contract;
+use crate::services::dispatchers::agent;
+use crate::services::dispatchers::contract;
 use crate::SpaceTradersService;
 
 #[derive(Clone)]
-pub struct MountService {
+pub struct ScanService {
     cfg: Arc<Config>,
     st: Arc<SpaceTradersService>,
 }
 
-impl MountService {
+impl ScanService {
     pub fn new(cfg: Arc<Config>, st: Arc<SpaceTradersService>) -> Self {
         Self { 
             cfg,
             st
         }
     }
-
-    pub async fn list_mounts(&self) -> anyhow::Result<()> {
+    
+    pub async fn scan_systems(&self) -> anyhow::Result<()> {
         Ok(())
     }
 
-    pub async fn install_mount(&self) -> anyhow::Result<()> {
+    pub async fn scan_waypoints(&self) -> anyhow::Result<()> {
         Ok(())
     }
 
-    pub async fn remove_mount(&self) -> anyhow::Result<()> {
+    pub async fn scan_ships(&self) -> anyhow::Result<()> {
         Ok(())
     }
 }

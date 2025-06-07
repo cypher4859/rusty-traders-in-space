@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use crate::config::Config;
-use crate::services::agent;
-use crate::services::contract;
+use crate::services::dispatchers::agent;
+use crate::services::dispatchers::contract;
 use crate::SpaceTradersService;
 
 #[derive(Clone)]
@@ -20,14 +20,17 @@ impl ModuleService {
     }
 
     pub async fn list_modules_by_ship(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 
     pub async fn install_module_to_ship(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 
     pub async fn remove_module_from_ship(&self) -> anyhow::Result<()> {
+        todo!();
         Ok(())
     }
 }

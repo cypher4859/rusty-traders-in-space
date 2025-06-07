@@ -69,6 +69,10 @@ enum Commands {
     Ship {
         #[command(subcommand)]
         target: subcommands::declarations::ShipCmd
+    },
+    Market {
+        #[command(subcommand)]
+        target: subcommands::declarations::MarketCmd
     }
 }
 
@@ -90,7 +94,7 @@ async fn main() -> anyhow::Result<()> {
     let navigator_service = Arc::new(NavigateService::new(cfg.clone(), spacetraders_service.clone()));
     let mount_service = Arc::new(MountService::new(cfg.clone(), spacetraders_service.clone()));
     let module_service = Arc::new(ModuleService::new(cfg.clone(), spacetraders_service.clone()));
-    let market_service = Arc::new(MarketService::new(spacetraders_service.clone(), cfg.clone()));
+    let market_service = Arc::new(MarketService::new(spacetraders_service.clone(), agent_service.clone(), cfg.clone()));
     let ship_service = Arc::new(ShipService::new(
         cfg.clone(), 
         spacetraders_service.clone(), 
@@ -158,6 +162,10 @@ async fn main() -> anyhow::Result<()> {
 
         Commands::Ship { target } => {
             subcommands::definitions::ship_actions(&ship_service, &target).await;
+        }
+
+        Commands::Market { target } => {
+            subcommands::definitions::market_action(&market_service, &target).await;
         }
     }
 

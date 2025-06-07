@@ -9,3 +9,4 @@ pub mod util_dto;
 pub mod supply_chain_dto;
 pub mod system_dto;
 pub mod nav_dto;
+pub mod error_dto;

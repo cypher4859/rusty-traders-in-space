@@ -1,4 +1,4 @@
-use crate::services::contract;
+use crate::services::dispatchers::contract;
 use crate::AgentDTO;
 use crate::model::{Faction, Contract, Ship};
 use crate::{RegisterDataDTO, RegisterEnvelopeDTO};
@@ -7,11 +7,11 @@ use anyhow::{Result, anyhow, ensure};
 #[derive(Debug, Clone)]
 pub struct Agent {
     account_id: String,
-    symbol:  String,
+    pub symbol:  String,
     hq:      String,
     credits: i64,
     starting_faction: String,
-    ship_count: u32
+    pub ship_count: u32
 }
 
 impl Agent {

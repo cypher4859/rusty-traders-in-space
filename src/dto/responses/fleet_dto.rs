@@ -1,8 +1,13 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::InventoryItemDTO;
+use crate::{dto::responses::supply_chain_dto::MarketTxDTO, AgentDTO, InventoryItemDTO};
 use super::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO};
 
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipDataEnvelopeDTO {
+    pub data: ShipDTO
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ShipDTO {
@@ -23,6 +28,19 @@ pub struct ShipDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ShipStatusEventDTO {
 
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipRefuelDataEnvelopeDTO {
+    pub data: ShipRefuelEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipRefuelEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub fuel: FuelDTO,
+    pub transaction: MarketTxDTO,
+    pub cargo: CargoDTO
 }
 
 

@@ -1,5 +1,5 @@
 use reqwest::Client;
-use anyhow::Result;
+use anyhow::{bail, Result};
 use owo_colors::OwoColorize;
 use tungstenite::http::request;          // cargo add owo-colors
 use std::fmt::Debug;
@@ -7,6 +7,7 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Serialize, de::DeserializeOwned};   // ← blanket trait for any owned deserialisable type
 use std::sync::Arc;
 use crate::config::Config;
+use crate::dto::responses::error_dto::{ErrorEnvelope};
 
 pub struct SpaceTradersService {
     cfg: Arc<Config>,
@@ -23,8 +24,8 @@ pub enum SupportedHttpMethods {
 impl SpaceTradersService {
     pub async fn new(cfg: Arc<Config>) -> anyhow::Result<Self> {
         let mut headers= HeaderMap::new();
-        let bearer_value = format!("Bearer {}", cfg.api_token);
-        headers.insert(AUTHORIZATION, HeaderValue::from_str(&bearer_value)?);
+        // let bearer_value = format!("Bearer {}", cfg.api_token);
+        // headers.insert(AUTHORIZATION, HeaderValue::from_str(&bearer_value)?);
         let http = Client::builder().default_headers(headers).build()?;
         Ok(Self {
             cfg: Arc::clone(&cfg),
@@ -92,6 +93,15 @@ impl SpaceTradersService {
         Ok((hdr))
     }
 
+    pub fn get_account_headers(&self) -> anyhow::Result<HeaderMap> {
+        let mut hdr: HeaderMap =  HeaderMap::new();
+        hdr.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", self.cfg.api_token))?
+        );
+        Ok((hdr))
+    }
+
     pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug + Clone, B: Serialize + ?Sized {
         self.post_with_headers::<T, B>(endpoint, body, None).await
     }
@@ -155,12 +165,31 @@ impl SpaceTradersService {
             req = req.headers(h);
         }
 
-        let resp = req.send().await?.error_for_status()?;
+        let resp = req.send().await?;
 
+        /* ========== 204 No Content ========== */
         if resp.status() == reqwest::StatusCode::NO_CONTENT {
             return Ok(None);
         }
-    
+
+        /* ========== error branch ========== */
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text   = resp.text().await?;
+
+            if let Ok(env) = serde_json::from_str::<ErrorEnvelope>(&text) {
+                eprintln!(
+                    "API error {} (code {}): {}",
+                    status, env.error.code, env.error.message
+                );
+                bail!("API error {} – code {}: {}", status, env.error.code, env.error.message);
+            } else {
+                eprintln!("HTTP {} – raw body: {}", status, text);
+                bail!("HTTP {}: {}", status, text);
+            }
+        }
+
+        /* ========== success branch ========== */
         let value = resp.json::<T>().await?;
         Ok(Some(value))
     }
@@ -186,12 +215,44 @@ impl SpaceTradersService {
             req = req.json(payload);
         }
     
-        let value = req.send().await?.error_for_status()?.json::<T>().await?;
+        let resp = req.send().await?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text   = resp.text().await?;
+
+            // try to decode the structured error
+            if let Ok(env) = serde_json::from_str::<ErrorEnvelope>(&text) {
+                eprintln!(
+                    "API error {} (code {}): {}",
+                    status, env.error.code, env.error.message
+                );
+                bail!("API error {} – code {}: {}", status, env.error.code, env.error.message);
+            } else {
+                // fallback: show raw body
+                eprintln!("HTTP {} – raw body: {}", status, text);
+                bail!("HTTP {}: {}", status, text);
+            }
+        }
+
+        /* ----------- success branch ----------- */
+        let value = resp.json::<T>().await?;
         Ok(value)
     }
 
     fn _send_request_by_socket(&self) {
 
+    }
+
+    pub fn split_waypoint_to_get_system_symbol(&self, waypoint_symbol: &String) -> String {
+        self._split_waypoint_to_get_system_symbol(waypoint_symbol)
+    }
+
+    fn _split_waypoint_to_get_system_symbol(&self, waypoint_symbol: &String) -> String {
+        let mut parts = waypoint_symbol.splitn(3, "-");
+        let first = parts.next().unwrap();
+        let second = parts.next().unwrap();
+        format!("{first}-{second}").clone()
     }
 
 }

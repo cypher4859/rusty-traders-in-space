@@ -7,42 +7,61 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum ShowCmd {
+        /// Show a system or waypoint details
         Location {
             #[arg(short, long)]
             location: String,
         },
+        /// Show the market details at a waypoint
+        Market {
+            #[arg(short, long)]
+            waypoint: String,
+        },
+        /// Show cargo of a ship
         Cargo {
             #[arg(short, long)]
             ship: String
         },
+        /// Show all systems
         Systems,
+        /// Show system details
         System {
             #[arg(short, long)]
             system: String
         },
+        /// Show the waypoints of a system
         Waypoints {
             #[arg(short, long)]
             system: String,
             #[arg(short, long, required = false)]
             waypoint_type: String
         },
+        /// Show waypoint details
         Waypoint {
             #[arg(short, long)]
             waypoint: String
         },
+        /// Show contracts of an agent
         Contracts {
             #[arg(short, long)]
             agent: String
         },
+        /// Show agents
         Agents {
             #[arg(short, long, required = false)]
             name: Option<String>
         },
+        /// Show currently selected agent
         CurrentAgent,
+        /// Show all factions
         Factions {
             #[arg(short, long, required = false)]
             name: Option<String>
         },
+        Ships {
+            #[arg(short, long, required = false)]
+            agent: Option<String>
+        }
 
     }
 
@@ -62,23 +81,29 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum ContractCmd {
+        /// Show current contract
         Current,
+        /// Negotiate a contract
         Negotiate {
             #[arg(short, long)]
             contract_id: String
         },
+        /// Accept a contract
         Accept {
             #[arg(short, long)]
             contract_id: String
         },
+        /// Find a contract by ID
         Find {
             #[arg(short, long)]
             contract_id: String
         },
+        /// Fulfill a contract
         Fulfill {
             #[arg(short, long)]
             contract_id: String
         },
+        /// Deliver goods for the contract
         Deliver {
             #[arg(short, long)]
             contract_id: String
@@ -88,10 +113,12 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum AgentCmd {
+        /// Activate an agent as the default agent for commands
         Activate {
             #[arg(short, long)]
             agent_id: String
         },
+        /// Deactivate the currently selected agent
         Deactivate,
         Show {
             #[arg(short, long, required = false)]
@@ -100,14 +127,17 @@ pub mod declarations {
             mine: bool
 
         },
+        /// Search for an agent
         Search {
             #[arg(short, long)]
             symbol: Option<String>
         },
+        /// In-progress
         Delete {
             #[arg(short, long)]
             agent_id: String
         },
+        /// Register a new agent
         New {
             #[arg(short, long)]
             symbol: String,
@@ -120,15 +150,19 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum SystemCmd {
+        /// List all systems
         List,
+        /// Get details of a system
         Details {
             #[arg(short, long)]
             system: String
         },
+        /// List all waypoints in a system
         Waypoints {
             #[arg(short, long)]
             system: String
         },
+        /// Get waypoint details
         Waypoint {
             #[arg(short, long)]
             waypoint: String
@@ -137,22 +171,27 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum WaypointCmd {
+        /// List all waypoints in a system
         List {
             #[arg(short, long)]
             system: String
         },
+        /// Get waypoint details
         Details {
             #[arg(short, long)]
             waypoint: String
         },
+        /// hmm...
         Jumpgate {
             #[arg(short, long)]
             waypoint: String
         },
+        /// hmm...
         Market {
             #[arg(short, long)]
             waypoint: String
         },
+        /// hmm...
         Construction {
             #[arg(short, long)]
             waypoint: String
@@ -170,7 +209,10 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum MarketCmd {
-        Supply
+        Details {
+            #[arg(short, long)]
+            waypoint: String
+        }
     }
 
     #[derive(Subcommand)]
@@ -260,6 +302,10 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum ShipCmd {
+        Status {
+            #[arg(short, long)]
+            ship: String,
+        },
         #[command(subcommand)]
         Cargo(CargoCmd),
         Chart {
@@ -272,7 +318,14 @@ pub mod declarations {
         Navigate(NavigateCmd),
         #[command(subcommand)]
         Scan(ScanCmd),
-        Refuel,
+        Refuel {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long, action = clap::ArgAction::SetFalse)]
+            from_cargo: bool,
+            #[arg(short, long, required = false)]
+            units: Option<u32>,
+        },
         #[command(subcommand)]
         Mounts(MountCmd),
         #[command(subcommand)]
@@ -370,9 +423,9 @@ pub mod declarations {
 pub mod definitions {
     use anyhow::Result;
     use tracing_subscriber::field::MakeExt;
-    use crate::{model::faction_model::Faction, services::contract::ContractService};
-    use crate::services::agent::AgentService;
-    use crate::services::faction::{self, FactionService};
+    use crate::{model::faction_model::Faction, services::dispatchers::contract::ContractService};
+    use crate::services::dispatchers::agent::AgentService;
+    use crate::services::dispatchers::faction::{self, FactionService};
     use crate::{Config, MarketService, NavigateService, ServerService, ShipService, SystemService};
 
     use super::declarations::{AgentCmd, CargoCmd, ContractCmd, FactionCmd, FleetCmd, MarketCmd, ModuleCmd, MountCmd, NavigateCmd, ReactorCmd, RepairCmd, ResourcesCmd, ScanCmd, ScrapCmd, ServerCmd, ShipCmd, ShowCmd, SystemCmd, WaypointCmd};
@@ -407,6 +460,7 @@ pub mod definitions {
     ) -> anyhow::Result<()> {
         match target {
             ShowCmd::Location { location} => system_svc.show_location(location).await?,
+            ShowCmd::Market { waypoint } => system_svc.get_market(waypoint).await?,
             ShowCmd::Cargo {ship} => ship_svc.list_cargo(ship).await?,
             ShowCmd::Systems => system_svc.list_systems().await?,
             ShowCmd::System { system} => system_svc.get_system(system).await?,
@@ -415,7 +469,8 @@ pub mod definitions {
             ShowCmd::Contracts { agent } => contract_svc.show_current_contracts(agent).await?,
             ShowCmd::Agents { name } => agent_svc.list_agents(name).await?,
             ShowCmd::CurrentAgent => agent_svc.find_agent(&None, &true).await?,
-            ShowCmd::Factions { name } => faction_svc.show_factions(name).await?
+            ShowCmd::Factions { name } => faction_svc.show_factions(name).await?,
+            ShowCmd::Ships { agent } => ship_svc.show_ships(agent).await?
         }
         Ok(())
     }
@@ -471,7 +526,7 @@ pub mod definitions {
 
     pub async fn market_action(market_svc: &MarketService, target: &MarketCmd) -> anyhow::Result<()> {
         match target {
-            MarketCmd::Supply => market_svc.get_market_supply_chain().await
+            MarketCmd::Details { waypoint } => market_svc.get_market_supply_chain(waypoint).await
         }
     }
 
@@ -496,6 +551,10 @@ pub mod definitions {
 
     pub async fn ship_actions(ship_svc: &ShipService, target: &ShipCmd) -> anyhow::Result<()> {
         match target {
+            ShipCmd::Status { ship } => {
+                ship_svc.get_ship(ship).await;
+                Ok(())
+            },
             ShipCmd::Cargo(cmd) => match cmd {
                         CargoCmd::List { ship } => ship_svc.list_cargo(ship).await,
                         CargoCmd::Purchase { ship, item, units} => ship_svc.purchase_cargo(ship, item, *units).await,
@@ -521,7 +580,7 @@ pub mod definitions {
                 ScanCmd::Waypoints => ship_svc.scan_waypoints().await,
                 ScanCmd::Ships => ship_svc.scan_ships().await,
             },
-            ShipCmd::Refuel => ship_svc.refuel_ship().await,
+            ShipCmd::Refuel { ship, from_cargo, units } => ship_svc.refuel_ship(ship, from_cargo, units).await,
             ShipCmd::Mounts(mount_cmd) => match mount_cmd {
                 MountCmd::List => ship_svc.list_mounts().await,
                 MountCmd::Install => ship_svc.install_mount().await,
