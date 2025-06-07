@@ -125,6 +125,7 @@ async fn main() -> anyhow::Result<()> {
             // info!("Showing {target}");
             subcommands::definitions::show(
                 &target,
+                &spacetraders_service,
                 &contract_service, 
                 &agent_service,
                 &server_service,

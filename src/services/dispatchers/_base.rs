@@ -1,6 +1,7 @@
 use reqwest::Client;
 use anyhow::{bail, Result};
 use owo_colors::OwoColorize;
+use strum::IntoEnumIterator;
 use tungstenite::http::request;          // cargo add owo-colors
 use std::fmt::Debug;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
@@ -35,6 +36,15 @@ impl SpaceTradersService {
         })
     }
 
+    pub fn display_enums<T>(&self)
+    where
+        T: IntoEnumIterator + Debug,
+    {
+        for v in T::iter() {
+            println!("{v:?}");
+        }
+    }
+
     pub fn display_api_result<T>(&self, label: &str, outcome: &Result<T>)
     where
         T: Serialize + Debug,
@@ -42,7 +52,7 @@ impl SpaceTradersService {
         self._display_api_result_in_json::<T>(label, outcome);
     }
 
-    pub fn _display_api_result_in_json<T>(&self, label: &str, outcome: &Result<T>)
+    fn _display_api_result_in_json<T>(&self, label: &str, outcome: &Result<T>)
     where 
         T: Serialize + Debug
     {

@@ -61,8 +61,18 @@ pub mod declarations {
         Ships {
             #[arg(short, long, required = false)]
             agent: Option<String>
-        }
-
+        },
+        /// Show all the game items
+        Items,
+        /// Show all the possible traits
+        Traits,
+        /// Show all the possible ship frames
+        Engines,
+        Frames,
+        Modules,
+        Mounts,
+        Reactors,
+        WaypointTypes
     }
 
     #[derive(Subcommand)]
@@ -423,10 +433,11 @@ pub mod declarations {
 pub mod definitions {
     use anyhow::Result;
     use tracing_subscriber::field::MakeExt;
+    use crate::constants::enum_lookups::{EngineSymbol, FrameSymbol, InventoryItemSymbol, ModuleSymbol, MountSymbol, ReactorSymbol, TraitSymbol, WaypointType};
     use crate::{model::faction_model::Faction, services::dispatchers::contract::ContractService};
     use crate::services::dispatchers::agent::AgentService;
     use crate::services::dispatchers::faction::{self, FactionService};
-    use crate::{Config, MarketService, NavigateService, ServerService, ShipService, SystemService};
+    use crate::{Config, MarketService, NavigateService, ServerService, ShipService, SpaceTradersService, SystemService};
 
     use super::declarations::{AgentCmd, CargoCmd, ContractCmd, FactionCmd, FleetCmd, MarketCmd, ModuleCmd, MountCmd, NavigateCmd, ReactorCmd, RepairCmd, ResourcesCmd, ScanCmd, ScrapCmd, ServerCmd, ShipCmd, ShowCmd, SystemCmd, WaypointCmd};
 
@@ -448,7 +459,8 @@ pub mod definitions {
     }
 
     pub async fn show(
-        target: &ShowCmd, 
+        target: &ShowCmd,
+        spacetraders_svc: &SpaceTradersService,
         contract_svc: &ContractService, 
         agent_svc: &AgentService,
         server_svc: &ServerService,
@@ -470,7 +482,31 @@ pub mod definitions {
             ShowCmd::Agents { name } => agent_svc.list_agents(name).await?,
             ShowCmd::CurrentAgent => agent_svc.find_agent(&None, &true).await?,
             ShowCmd::Factions { name } => faction_svc.show_factions(name).await?,
-            ShowCmd::Ships { agent } => ship_svc.show_ships(agent).await?
+            ShowCmd::Ships { agent } => ship_svc.show_ships(agent).await?,
+            ShowCmd::Items => { 
+                spacetraders_svc.display_enums::<InventoryItemSymbol>(); 
+            },
+            ShowCmd::Frames => {
+                spacetraders_svc.display_enums::<FrameSymbol>();
+            },
+            ShowCmd::Modules => {
+                spacetraders_svc.display_enums::<ModuleSymbol>();
+            },
+            ShowCmd::Mounts => {
+                spacetraders_svc.display_enums::<MountSymbol>();
+            },
+            ShowCmd::Reactors => {
+                spacetraders_svc.display_enums::<ReactorSymbol>();
+            },
+            ShowCmd::Engines => {
+                spacetraders_svc.display_enums::<EngineSymbol>();
+            },
+            ShowCmd::WaypointTypes => {
+                spacetraders_svc.display_enums::<WaypointType>();
+            },
+            ShowCmd::Traits => {
+                spacetraders_svc.display_enums::<TraitSymbol>();
+            },
         }
         Ok(())
     }
@@ -481,7 +517,7 @@ pub mod definitions {
             ContractCmd::Negotiate { contract_id } => contract_svc.negotiate_contract(contract_id).await?,
             ContractCmd::Current => {
                 let agent_symbol = agent_svc.get_current_selected_agent_token().await?;
-                contract_svc.show_current_contracts(&agent_symbol).await?;
+                contract_svc.show_current_contracts(&agent_symbol).await?
             },
             ContractCmd::Find { contract_id} => contract_svc.find_contract(contract_id).await?,
             ContractCmd::Fulfill { contract_id } => contract_svc.fulfill_contract(contract_id).await?,
