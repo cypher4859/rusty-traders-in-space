@@ -59,10 +59,9 @@ impl ContractService {
         Ok(())
     }
 
-    pub async fn deliver_contract(&self, contract_id: &String) -> anyhow::Result<()> {
+    pub async fn deliver_contract(&self, contract_id: &String, ship_symbol: &String) -> anyhow::Result<()> {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
-        let ship: String = String::from("");
-        self._deliver_contract_by_id(contract_id, &agent_token, &ship).await?;
+        self._deliver_contract_by_id(contract_id, &agent_token, &ship_symbol).await?;
         Ok(())
     }
 

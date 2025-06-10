@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
-pub enum MarketSupplyChainDataDTO {
-    Single(ContractDTO),
-    List(Vec<ContractDTO>),
+pub enum MarketSupplyChainDataEnumDTO {
+    Single(MarketSupplyChainDataEnvelopeDTO),
+    List(Vec<MarketSupplyChainDataEnvelopeDTO>),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MarketSupplyChainEnvelopeDTO {
-    pub data: MarketSupplyChainDataDTO,
+pub struct MarketSupplyChainDataEnvelopeDTO {
+    pub data: MarketSupplyChainDTO,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -68,6 +68,30 @@ pub struct MarketTxDTO {
     pub total_price: u32,
 
     pub timestamp: String,        // ISO-8601; swap to chrono DateTime if desired
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TransactionDTO {
+    #[serde(rename = "waypointSymbol")]
+    pub waypoint_symbol: String,
+    #[serde(rename = "shipSymbol")]
+    pub ship_symbol: String,
+    #[serde(rename = "tradeSymbol")]
+    pub trade_symbol: String,
+    #[serde(rename = "totalPrice")]
+    pub total_price: u32,
+    pub timestamp: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RepairTransactionDTO {
+    #[serde(rename = "waypointSymbol")]
+    pub waypoint_symbol: String,
+    #[serde(rename = "shipSymbol")]
+    pub ship_symbol: String,
+    #[serde(rename = "totalPrice")]
+    pub total_price: u32,
+    pub timestamp: String,
 }
 
 /// ---------- live market good snapshot ----------

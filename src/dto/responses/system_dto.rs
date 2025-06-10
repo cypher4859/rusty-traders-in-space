@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::AgentDTO;
+use crate::{dto::responses::fleet_dto::CargoDTO, AgentDTO};
 
 use super::fleet_dto::{FrameDTO, ReactorDTO, EngineDTO, ModuleDTO, MountDTO, CrewDTO};
 
@@ -22,7 +22,21 @@ pub struct SystemListEnvelopeDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SystemEnvelopeDTO {
     pub data: SystemDTO,
+    // pub meta: MetaDTO,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SystemSupplyConstructionDataEnvelopeDTO {
+    pub data: SystemSupplyConstructionEnvelopeDTO,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SystemSupplyConstructionEnvelopeDTO {
+    pub construction: ConstructionSiteDTO,
+    pub cargo: CargoDTO
+}
+
+
 
 /// ------------  meta pagination block ------------
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -250,3 +264,5 @@ pub struct ConstructionSiteMaterialsDTO {
     pub required_units: i32,
     pub fulfilled: i32
 }
+
+

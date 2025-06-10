@@ -7,11 +7,29 @@ impl PlayerService {
     
     }
 
-    pub async fn list_ships() -> anyhow::Result<()> {
+    pub async fn show_agents() -> anyhow::Result<()> {}
 
-    }
+    pub async fn create_new_agent() -> anyhow::Result<()> {}
 
-    pub async fn get_ship() -> anyhow::Result<()> {}
+    pub async fn show_factions() -> anyhow::Result<()> {}
+
+    pub async fn find_factions() -> anyhow::Result<()> {}
+
+    pub async fn show_contracts() -> anyhow::Result<()> {}
+
+    pub async fn find_contract() -> anyhow::Result<()> {}
+
+    pub async fn generate_contract() -> anyhow::Result<()> {}
+
+    pub async fn list_ships() -> anyhow::Result<()> {}
+
+    pub async fn find_ship() -> anyhow::Result<()> {}
+
+    pub async fn repair_ship() -> anyhow::Result<()> {}
+
+    pub async fn scrap_ship() -> anyhow::Result<()> {}
+
+
 
     pub async fn list_sectors() -> anyhow::Result<()> {}
 
@@ -23,6 +41,7 @@ impl PlayerService {
 
     pub async fn get_system() -> anyhow::Result<()> {}
 
+    /// Scan ships, systems, waypoints
     pub async fn scan() -> anyhow::Result<()> {}
 
     pub async fn move_to_waypoint() -> anyhow::Result<()> {}
@@ -36,4 +55,12 @@ impl PlayerService {
     pub async fn orbit() -> anyhow::Result<()> {}
 
     pub async fn show() -> anyhow::Result<()> {}
+
+    pub async fn extract_resources() -> anyhow::Result<()> {}
+
+    pub async fn siphon_resources() -> anyhow::Result<()> {}
+
+    pub async fn survey() -> anyhow::Result<()> {}
+
+
 }

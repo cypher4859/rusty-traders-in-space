@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::{dto::responses::supply_chain_dto::MarketTxDTO, AgentDTO, InventoryItemDTO};
+use crate::{dto::responses::supply_chain_dto::{MarketTxDTO, RepairTransactionDTO, TransactionDTO}, AgentDTO, InventoryItemDTO};
 use super::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO};
 
 
@@ -139,7 +139,8 @@ pub struct ModuleDTO {
     pub description:    String,
     #[serde(rename = "requirements")]
     pub module_requirements: ModuleRequirementsDTO,
-    pub capacity:       Option<u16>
+    pub capacity:       Option<u16>,
+    pub range:          Option<u32>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -218,4 +219,123 @@ pub struct CooldownDTO {
     pub remaining_seconds:  u32,
     pub expiration:         Option<String>
     
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum ModuleDataEnvelopeEnumDTO {
+    Single(ModuleDataEnvelopeDTO),
+    List(Vec<ModuleDataEnvelopeDTO>)
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ModuleDataEnvelopeDTO {
+    pub data: ModuleDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ModuleInstallDataEnvelopeDTO {
+    pub data: ModuleInstallEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ModuleInstallEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub modules: ModuleDataEnvelopeEnumDTO,
+    pub cargo: CargoDTO,
+    pub transaction: TransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ModuleRemoveDataEnvelopeDTO {
+    pub data: ModuleRemoveEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ModuleRemoveEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub modules: ModuleDataEnvelopeEnumDTO,
+    pub cargo: CargoDTO,
+    pub transaction: TransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum MountDataEnvelopeEnumDTO {
+    Single(MountDataEnvelopeDTO),
+    List(Vec<MountDataEnvelopeDTO>)
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MountDataEnvelopeDTO {
+    pub data: MountDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MountInstallDataEnvelopeDTO {
+    pub data: MountInstallEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MountInstallEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub Mounts: MountDataEnvelopeEnumDTO,
+    pub cargo: CargoDTO,
+    pub transaction: TransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MountRemoveDataEnvelopeDTO {
+    pub data: MountRemoveEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MountRemoveEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub mounts: MountDataEnvelopeEnumDTO,
+    pub cargo: CargoDTO,
+    pub transaction: TransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipRepairStatusDataEnvelopeDTO {
+    pub data: ShipRepairStatusEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipRepairStatusEnvelopeDTO {
+    pub transaction: RepairTransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipRepairDataEnvelopeDTO {
+    pub data: ShipRepairEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipRepairEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub ship: ShipDTO,
+    pub transaction: RepairTransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipScrapStatusDataEnvelopeDTO {
+    pub data: ShipScrapStatusEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipScrapStatusEnvelopeDTO {
+    pub agent: AgentDTO,
+    pub transaction: RepairTransactionDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipScrapDataEnvelopeDTO {
+    pub data: ShipScrapEnvelopeDTO
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ShipScrapEnvelopeDTO {
+    pub transaction: RepairTransactionDTO
 }

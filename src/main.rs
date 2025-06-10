@@ -92,8 +92,8 @@ async fn main() -> anyhow::Result<()> {
     let cargo_service = Arc::new(CargoService::new(cfg.clone(), spacetraders_service.clone()));
     let scanner_service = Arc::new(ScanService::new(cfg.clone(), spacetraders_service.clone()));
     let navigator_service = Arc::new(NavigateService::new(cfg.clone(), spacetraders_service.clone()));
-    let mount_service = Arc::new(MountService::new(cfg.clone(), spacetraders_service.clone()));
-    let module_service = Arc::new(ModuleService::new(cfg.clone(), spacetraders_service.clone()));
+    let mount_service = Arc::new(MountService::new(cfg.clone(), spacetraders_service.clone(), agent_service.clone()));
+    let module_service = Arc::new(ModuleService::new(cfg.clone(), spacetraders_service.clone(), agent_service.clone()));
     let market_service = Arc::new(MarketService::new(spacetraders_service.clone(), agent_service.clone(), cfg.clone()));
     let ship_service = Arc::new(ShipService::new(
         cfg.clone(), 

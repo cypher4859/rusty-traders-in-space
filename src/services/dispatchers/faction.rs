@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use anyhow::bail;
+
 use crate::config::Config;
 use crate::{FactionEnvelopeDTO, SpaceTradersService};
 
@@ -28,24 +30,38 @@ impl FactionService {
         Ok(())
     }
 
-    pub async fn show_all_factions(&self) -> Result<(), ()> {
+    pub async fn show_all_factions(&self) -> anyhow::Result<FactionEnvelopeDTO> {
         self._show_all_factions().await
     }
 
-    pub async fn search_factions(&self, faction_name: &String) -> Result<(), ()> {
+    pub async fn search_factions(&self, faction_name: &String) -> anyhow::Result<FactionEnvelopeDTO> {
         self._search_factions(faction_name).await
     }
 
-    async fn _search_factions(&self, faction_name: &String) -> anyhow::Result<(), ()> {
+    async fn _search_factions(&self, faction_name: &String) -> anyhow::Result<FactionEnvelopeDTO> {
         let uppercase_faction_name = faction_name.to_uppercase();
         let endpoint: String = format!("factions/{uppercase_faction_name}");
-        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
-        Ok(())
+        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await?;
+        match result {
+            Some(res) => {
+                Ok(res)
+            }
+            None => {
+                bail!("No factions were acquired!");
+            }
+        }
     }
 
-    async fn _show_all_factions(&self) -> Result<(), ()> {
+    async fn _show_all_factions(&self) -> anyhow::Result<FactionEnvelopeDTO> {
         let endpoint: String = String::from("factions");
-        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await;
-        Ok(())
+        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await?;
+        match result {
+            Some(res) => {
+                Ok(res)
+            }
+            None => {
+                bail!("No factions were acquired!");
+            }
+        }
     }
 }
