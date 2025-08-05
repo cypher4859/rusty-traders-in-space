@@ -326,7 +326,97 @@
                     "kind": "bin"
                 }
             },
-            "args": ["agent", "new", "--faction", "COSMIC", "--symbol", "devilelk669"],
+            "args": ["agent", "new", "--faction", "COSMIC", "--symbol", "devilelk662"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Agent Activate",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["agent", "activate", "-a", "devilelk664"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Agent Deactivate",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["agent", "deactivate"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Agent Show",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["agent", "show"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Show Agents",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["show", "agents"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Sync Agents",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["agent", "sync"],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -345,24 +435,6 @@
                 }
             },
             "args": ["server", "health"],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug: Agent List All",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=spacetraders",
-                    "--package=spacetraders"
-                ],
-                "filter": {
-                    "name": "spacetraders",
-                    "kind": "bin"
-                }
-            },
-            "args": ["agent", "show-all"],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -399,6 +471,24 @@
                 }
             },
             "args": ["ship", "cargo", "list", "-s", "AELINDRACH-2"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug: Market Details",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spacetraders",
+                    "--package=spacetraders"
+                ],
+                "filter": {
+                    "name": "spacetraders",
+                    "kind": "bin"
+                }
+            },
+            "args": ["market", "details", "-w", "X1-YC95-A3"],
             "cwd": "${workspaceFolder}"
         }
     ]
