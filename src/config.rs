@@ -1,19 +1,36 @@
-use std::sync::Arc;
+use std::{process::Output, sync::Arc};
 use serde::{Deserialize, Serialize};
 use figment::{
     providers::{Format, Serialized, Toml, Json, Env },
     Figment,
     Error as FigmentError
 };
-use clap::{Parser, Subcommand};
+use clap::{Parser, ValueEnum};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ValueEnum)]
+#[clap(rename_all = "kebab_case")]        // accepts json / table (case-insens.)
+pub enum OutputMode {
+    Json,
+    Table,
+}
+
+impl Default for OutputMode {
+    fn default() -> Self { OutputMode::Json }   // <── fallback for Config::default()
+}
 
 #[derive(Debug, Deserialize, Default, Serialize, Parser)]
 pub struct Config {
-    #[clap(short, long, value_parser)]
+    #[clap(short = 'u', long, value_parser)]
     pub api_base_url: String,
 
-    #[clap(short, long, value_parser)]
-    pub api_token: String
+    #[clap(short = 't', long, value_parser)]
+    pub api_token: String,
+
+    #[clap(short = 'm', long, value_enum, default_value_t)]
+    pub output_mode: OutputMode,
+
+    #[clap(short = 't', long, value_parser)]
+    pub db_path: String
 }
 
 
