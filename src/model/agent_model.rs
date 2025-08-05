@@ -1,17 +1,22 @@
+use crate::helpers::table_helpers::TableRow;
 use crate::services::dispatchers::contract;
 use crate::AgentDTO;
 use crate::model::{Faction, Contract, Ship};
 use crate::{RegisterDataDTO, RegisterEnvelopeDTO};
 use anyhow::{Result, anyhow, ensure};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
     account_id: String,
     pub symbol:  String,
     hq:      String,
     credits: i64,
     starting_faction: String,
-    pub ship_count: u32
+    pub ship_count: u32,
+    pub token: Option<String>,
+    pub active: bool,
+    pub is_archived: bool
 }
 
 impl Agent {
@@ -25,7 +30,8 @@ impl Agent {
         credits: i64, 
         hq: S3, 
         starting_faction: S4, 
-        ship_count: u32
+        ship_count: u32,
+        token: Option<String>
     ) -> anyhow::Result<Self>
     where
         S1: Into<String>,
@@ -33,10 +39,16 @@ impl Agent {
         S3: Into<String>,
         S4: Into<String>
     {
-        let account_id: String       = account_id.into();
+        
+        let account_id: String = match Some(account_id) {
+            Some(acct) => acct.into(),
+            None => String::from("<Hidden>")
+        };
         let symbol: String           = symbol.into();
         let hq: String               = hq.into();
         let starting_faction: String = starting_faction.into();
+        let active: bool = false;
+        let is_archived: bool = false;
         
         ensure!(!symbol.is_empty(), "symbol cannot be empty");
         ensure!(
@@ -61,8 +73,37 @@ impl Agent {
                 hq,
                 starting_faction,
                 ship_count,
+                token,
+                active,
+                is_archived
             }
         )
+    }
+}
+
+impl TableRow for Agent {
+    fn headers() -> Vec<&'static str> {
+        vec!["Name", "HQ", "Credits", "Faction", "Ships", "Account"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let symbol = match self.active {
+            true => {
+                let s = self.symbol.clone();
+                format!("*{s}")
+            },
+            false => {
+                self.symbol.clone()
+            }
+        };
+        vec![
+            symbol,
+            self.hq.clone(),
+            self.credits.to_string(),
+            self.starting_faction.clone(),
+            self.ship_count.to_string(),
+            self.account_id.clone()
+        ]
     }
 }
 

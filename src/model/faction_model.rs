@@ -3,8 +3,8 @@ use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter};
 
-use crate::constants::enum_lookups::FactionSymbol;
-use crate::constants::enum_lookups::TraitSymbol;
+use crate::helpers::enum_lookups::FactionSymbol;
+use crate::helpers::enum_lookups::TraitSymbol;
 use crate::FactionDTO;
 use crate::TraitDTO;
 

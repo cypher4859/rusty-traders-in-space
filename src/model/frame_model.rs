@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString};
 use anyhow::{Result, anyhow, ensure};
-use crate::{constants::enum_lookups::FrameSymbol, dto::responses::fleet_dto::{FrameDTO, FrameRequirementsDTO}};
+use crate::{helpers::enum_lookups::FrameSymbol, dto::responses::fleet_dto::{FrameDTO, FrameRequirementsDTO}};
 
 
 #[derive(Debug, Clone)]
@@ -38,28 +38,28 @@ impl TryFrom<FrameRequirementsDTO> for FrameRequirements {
 pub struct Frame {
     pub frame_symbol: FrameSymbol,
     pub name:   String,
-    pub condition: i16,
-    pub integrity: i16,
+    pub condition: u16,
+    pub integrity: u16,
     pub description: String,
-    pub module_slots: u8,
-    pub mounting_points: u8,
+    pub module_slots: u16,
+    pub mounting_points: u16,
     pub fuel_capacity: u16,
     pub requirements: FrameRequirements,
-    pub quality: u8,
+    pub quality: u16,
 }
 
 impl Frame {
     pub fn new<S1, S2>(
         frame_symbol: FrameSymbol,
         name: S1,
-        condition: i16,
-        integrity: i16,
+        condition: u16,
+        integrity: u16,
         description: S2,
-        module_slots: u8,
-        mounting_points: u8,
+        module_slots: u16,
+        mounting_points: u16,
         fuel_capacity: u16,
         requirements: FrameRequirements,
-        quality: u8,
+        quality: u16,
     ) -> anyhow::Result<Self> 
     where 
         S1: Into<String>,
@@ -86,8 +86,10 @@ impl TryFrom<FrameDTO> for Frame {
     type Error = anyhow::Error;
 
     fn try_from(dto: FrameDTO) -> anyhow::Result<Self> {
+        let frame = FrameSymbol::from_str(&dto.frame_symbol)?;
+        
         Frame::new(
-            FrameSymbol::from_str(&dto.frame_symbol)?,
+            frame,
             dto.name,
             dto.condition,
             dto.integrity,

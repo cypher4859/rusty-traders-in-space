@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use strum_macros::{EnumIter, EnumString};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::{constants::enum_lookups::ReactorSymbol, dto::responses::fleet_dto::{ReactorDTO, ReactorRequirementsDTO}};
+use crate::{helpers::enum_lookups::ReactorSymbol, dto::responses::fleet_dto::{ReactorDTO, ReactorRequirementsDTO}};
 
 
 

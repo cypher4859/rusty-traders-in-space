@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
 use strum_macros::{EnumIter, EnumString};
-use crate::{constants::enum_lookups::WaypointType, dto::responses::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO}};
+use crate::{helpers::enum_lookups::WaypointType, dto::responses::nav_dto::{NavDTO, NavRouteDTO, NavRouteLocationDTO}};
 
 use super::{ShipStatus, ShipFlightMode};
 
@@ -47,7 +47,7 @@ impl TryFrom<NavDTO> for Nav {
             dto.system_symbol,
             dto.waypoint_symbol,
             dto.route.try_into()?,
-            ShipStatus::from_str(&dto.status)?,
+            ShipStatus::from_str(&dto.status.to_string())?,
             ShipFlightMode::from_str(&dto.flight_mode)?
         )
     }

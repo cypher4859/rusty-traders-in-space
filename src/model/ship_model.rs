@@ -1,7 +1,7 @@
 use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter, EnumString};
-use crate::constants::enum_lookups::FactionSymbol;
+use crate::helpers::enum_lookups::FactionSymbol;
 use crate::dto::responses::inventory_dto::{InventoryItemDTO};
 use crate::dto::responses::fleet_dto::{CrewDTO, EngineDTO, FrameDTO, ReactorDTO, RegistrationDTO, ShipDTO, ModuleDTO, ModuleRequirementsDTO, MountDTO, MountRequirementsDTO, CooldownDTO, FuelDTO, CargoDTO};
 use crate::dto::responses::nav_dto::{NavRouteLocationDTO};

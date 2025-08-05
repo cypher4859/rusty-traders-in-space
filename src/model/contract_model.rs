@@ -2,7 +2,7 @@ use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter};
 
-use crate::constants::enum_lookups::FactionSymbol;
+use crate::helpers::enum_lookups::FactionSymbol;
 // use crate::{dto::contract_dto::ContractTermsDTO, services::{contract, faction}, ContractDTO};
 use crate::ContractTermsDTO;
 use crate::ContractDTO;
