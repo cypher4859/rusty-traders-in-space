@@ -103,7 +103,8 @@ async fn main() -> anyhow::Result<()> {
         scanner_service.clone(),
         navigator_service.clone(),
         mount_service.clone(),
-        module_service.clone()
+        module_service.clone(),
+        system_service.clone()
     ));
 
     // Match the CLI  command
