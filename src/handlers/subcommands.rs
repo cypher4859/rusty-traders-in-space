@@ -16,6 +16,8 @@ pub mod declarations {
         Market {
             #[arg(short, long)]
             waypoint: String,
+            #[arg(short, long, required = false)]
+            ship: Option<String>
         },
         /// Show cargo of a ship
         Cargo {
@@ -125,6 +127,8 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum AgentCmd {
+        /// Sync DB agent list with API by testing their tokens. Useful with server resets
+        Sync,
         /// Activate an agent as the default agent for commands
         Activate {
             #[arg(short, long)]
@@ -201,7 +205,9 @@ pub mod declarations {
         /// hmm...
         Market {
             #[arg(short, long)]
-            waypoint: String
+            waypoint: String,
+            #[arg(short, long, required = false)]
+            ship: Option<String>
         },
         /// hmm...
         Construction {
@@ -223,7 +229,9 @@ pub mod declarations {
     pub enum MarketCmd {
         Details {
             #[arg(short, long)]
-            waypoint: String
+            waypoint: String,
+            #[arg(short, long, required = false)]
+            ship: Option<String>,
         }
     }
 
@@ -307,9 +315,30 @@ pub mod declarations {
 
     #[derive(Subcommand)]
     pub enum ScanCmd {
-        Systems,
-        Waypoints,
-        Ships
+        Market {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            waypoint: String,
+        },
+        Systems {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            system: String,
+        },
+        Waypoints {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            waypoint: String,
+        },
+        Ships {
+            #[arg(short, long)]
+            ship: String,
+            #[arg(short, long)]
+            target: String,
+        }
     }
 
     #[derive(Subcommand)]
@@ -473,7 +502,7 @@ pub mod declarations {
 pub mod definitions {
     use anyhow::{Ok, Result};
     use tracing_subscriber::field::MakeExt;
-    use crate::constants::enum_lookups::{EngineSymbol, FrameSymbol, InventoryItemSymbol, ModuleSymbol, MountSymbol, ReactorSymbol, TraitSymbol, WaypointType};
+    use crate::helpers::enum_lookups::{EngineSymbol, FrameSymbol, InventoryItemSymbol, ModuleSymbol, MountSymbol, ReactorSymbol, TraitSymbol, WaypointType};
     use crate::services::dispatchers::ship;
     use crate::{model::faction_model::Faction, services::dispatchers::contract::ContractService};
     use crate::services::dispatchers::agent::AgentService;
@@ -513,7 +542,7 @@ pub mod definitions {
     ) -> anyhow::Result<()> {
         match target {
             ShowCmd::Location { location} => {system_svc.show_location(location).await?;},
-            ShowCmd::Market { waypoint } => {system_svc.get_market(waypoint).await?;},
+            ShowCmd::Market { waypoint, ship } => {system_svc.get_market(waypoint, ship).await?;},
             ShowCmd::Cargo {ship} => {ship_svc.list_cargo(ship).await?;},
             ShowCmd::Systems => {system_svc.list_systems().await?;},
             ShowCmd::System { system} => {system_svc.get_system(system).await?;},
@@ -570,10 +599,11 @@ pub mod definitions {
 
     pub async fn agent_actions(agent_svc: &AgentService, target: &AgentCmd) -> Result<()> {
         match target {
+            AgentCmd::Sync => agent_svc.sync_db_agents_with_api(true).await?,
             AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id).await?,
-            AgentCmd::Deactivate => agent_svc.deactivate_agent().await?,
+            AgentCmd::Deactivate => agent_svc.deactivate_agent()?,
             AgentCmd::Delete { agent_id} => agent_svc.delete_agent(agent_id).await,
-            AgentCmd::Show { agent_id, mine } => agent_svc.find_agent(agent_id, mine).await?,
+            AgentCmd::Show { agent_id, mine} => agent_svc.find_agent(agent_id, mine).await?,
             AgentCmd::Search { symbol} => agent_svc.list_agents(symbol).await?,
             AgentCmd::New { symbol, faction, email} => agent_svc.register_new_agent(symbol, faction, email).await?
         }
@@ -606,7 +636,7 @@ pub mod definitions {
 
     pub async fn market_action(market_svc: &MarketService, target: &MarketCmd) -> anyhow::Result<()> {
         match target {
-            MarketCmd::Details { waypoint } => {market_svc.get_market(waypoint).await;Ok(())}
+            MarketCmd::Details { waypoint, ship  } => {market_svc.get_market(waypoint, ship).await;Ok(())}
         }
     }
 
@@ -624,11 +654,12 @@ pub mod definitions {
             WaypointCmd::List { system } => {system_svc.list_waypoints_by_system(system).await;Ok(())},
             WaypointCmd::Details { waypoint } => {system_svc.get_waypoint(waypoint).await;Ok(())},
             WaypointCmd::Jumpgate { waypoint } => {system_svc.get_jumpgate(waypoint).await;Ok(())},
-            WaypointCmd::Market { waypoint } => {system_svc.get_market(waypoint).await;Ok(())},
+            WaypointCmd::Market { waypoint , ship } => {system_svc.get_market(waypoint, ship).await;Ok(())},
             WaypointCmd::Construction { waypoint } => {system_svc.get_construction_site(waypoint).await;Ok(())}
         }
     }
 
+    // TODO: It would be useful to "activate" a specific ship ot save from having to type the name out all the time
     pub async fn ship_actions(ship_svc: &ShipService, target: &ShipCmd) -> anyhow::Result<()> {
         match target {
             ShipCmd::Status { ship } => {
@@ -652,6 +683,8 @@ pub mod definitions {
                     Ok(())
                 },
             },
+            // FIXME: This appears broken. Ran a navigate status and it failed silently. Ran a navigate to and it also failed silently
+            // Need tests bad
             ShipCmd::Navigate(navigate_cmd) => match navigate_cmd {
                 NavigateCmd::Orbit { ship } => {
                     ship_svc.navigate_orbit(ship).await;
@@ -683,9 +716,22 @@ pub mod definitions {
                 },
             },
             ShipCmd::Scan(scan_cmd) => match scan_cmd {
-                ScanCmd::Systems => ship_svc.scan_systems().await,
-                ScanCmd::Waypoints => ship_svc.scan_waypoints().await,
-                ScanCmd::Ships => ship_svc.scan_ships().await,
+                ScanCmd::Market { ship, waypoint } => {
+                    ship_svc.scan_market(ship, waypoint).await;
+                    Ok(())
+                },
+                ScanCmd::Systems { ship, system } => {
+                    ship_svc.scan_systems(ship, system).await;
+                    Ok(())
+                },
+                ScanCmd::Waypoints {ship, waypoint } => {
+                    ship_svc.scan_waypoints(ship, waypoint).await;
+                    Ok(())
+                },
+                ScanCmd::Ships {ship, target } => {
+                    ship_svc.scan_ships(ship, target).await;
+                    Ok(())
+                },
             },
             ShipCmd::Refuel { ship, from_cargo, units } => {
                 ship_svc.refuel_ship(ship, from_cargo, units).await;
