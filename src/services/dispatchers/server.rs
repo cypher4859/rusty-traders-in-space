@@ -22,7 +22,7 @@ impl ServerService {
     }
     async fn _get_status(&self) -> anyhow::Result<ServerStatusDTO> {
         let endpoint: String = String::from("");
-        let result = self.st.get::<ServerStatusDTO>(&endpoint).await?;
+        let result = self.st.get::<ServerStatusDTO>(&endpoint, true).await?;
         match result {
             Some(res) => {
                 Ok(res)

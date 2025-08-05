@@ -1,20 +1,36 @@
-use reqwest::Client;
-use anyhow::{bail, Result};
+use comfy_table::{Row, Table};
+use anyhow::{bail, Context, Result};
 use owo_colors::OwoColorize;
+use serde::Deserialize;
 use strum::IntoEnumIterator;
-use tungstenite::http::request;          // cargo add owo-colors
+use tungstenite::http::request;
+use std::any::type_name;
+// cargo add owo-colors
 use std::fmt::Debug;
+use std::fs;
+use std::path::Path;
+use reqwest::{Client, StatusCode};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Serialize, de::DeserializeOwned};   // ← blanket trait for any owned deserialisable type
+use serde_json::from_str;
 use std::sync::Arc;
-use crate::config::Config;
+use rusqlite::{params, Connection, OptionalExtension, params_from_iter, ToSql};
+use std::time::Duration;
+use rand::{thread_rng, Rng};
+use tokio::time::sleep;
+use crate::config::{Config, OutputMode};
 use crate::dto::responses::error_dto::{ErrorEnvelope};
+use crate::dto::responses::util_dto::PageEnvelopeDTO;
+use crate::helpers::table_helpers::TableRow;
+use crate::{Agent, RegisterDataDTO};
+
 
 pub struct SpaceTradersService {
     cfg: Arc<Config>,
     http: reqwest::Client,
     base: String,
     token: String,
+    db_connection: Connection
 }
 
 pub enum SupportedHttpMethods {
@@ -28,12 +44,163 @@ impl SpaceTradersService {
         // let bearer_value = format!("Bearer {}", cfg.api_token);
         // headers.insert(AUTHORIZATION, HeaderValue::from_str(&bearer_value)?);
         let http = Client::builder().default_headers(headers).build()?;
+        let db_connection = SpaceTradersService::init_db(&cfg.db_path);
         Ok(Self {
             cfg: Arc::clone(&cfg),
             http,
             base: cfg.api_base_url.clone(),
-            token: cfg.api_token.clone()
+            token: cfg.api_token.clone(),
+            db_connection: db_connection?
         })
+    }
+
+    fn init_db(path: &str) -> Result<Connection> {
+        let p = Path::new(path);
+        let tables_to_create = vec![
+            type_name::<Agent>().rsplit("::").next().unwrap()
+        ];
+
+        // make sure the parent directory exists
+        if let Some(dir) = p.parent() {
+            if !dir.exists() {
+                fs::create_dir_all(dir)?;           // create db/
+            }
+        }
+        let conn = Connection::open(path)?;
+        for table_name in tables_to_create {
+            conn.execute_batch(
+                format!("CREATE TABLE IF NOT EXISTS {} (
+                    type  TEXT NOT NULL,
+                    id    TEXT NOT NULL PRIMARY KEY,
+                    json  TEXT NOT NULL
+                );", table_name).as_str(),
+            )?;
+        }
+        Ok(conn)
+    }
+
+    pub fn get_db_connection(&self) -> &Connection {
+        &self.db_connection
+    }
+
+    pub fn save_to_db<T, F>(
+        &self,
+        // conn: &Connection,
+        model: &T,
+        id_fn: F,
+    ) -> Result<()>
+    where
+        T: Serialize,
+        F: Fn(&T) -> String,
+    {
+        let conn = &self.db_connection;
+        let bucket = type_name::<T>()
+            .rsplit("::")
+            .next()
+            .unwrap_or("unknown");
+    
+        let json = serde_json::to_string_pretty(model)?;
+        let mut sql = format!("INSERT OR REPLACE INTO \"{}\" (type, id, json) VALUES (?1, ?2, ?3)", bucket);
+    
+        conn.execute(
+            &sql,
+            params![bucket, id_fn(model), json],
+        )?;
+    
+        Ok(())
+    }
+
+    /// Return all rows from the table that corresponds to `T`.
+    ///
+    /// * `filter_sql` – optional **SQL WHERE fragment** (without the leading
+    ///   "WHERE").
+    /// * `params`     – parameters for that filter.
+    pub fn dump_table_from_tb<T, P>(
+        &self,
+        filter_sql: Option<&str>,
+        params: P,
+    ) -> Result<()>
+    where
+        T: DeserializeOwned + Serialize + TableRow + Debug,
+        P: IntoIterator,
+        P::Item: ToSql,
+    {
+        let out = self.get_table_from_db::<T,P>(filter_sql, params);
+
+        self.display_results_as_table(out?);
+
+        Ok(())
+    }
+
+
+    pub fn get_table_from_db<T, P>(
+        &self,
+        filter_sql: Option<&str>,
+        params: P,
+    ) -> anyhow::Result<Vec<T>>
+    where
+        T: DeserializeOwned + Serialize + TableRow + Debug,
+        P: IntoIterator,
+        P::Item: ToSql, 
+    {
+        let conn: &Connection = &self.db_connection;
+
+        /* ---------- derive bucket = table name ---------- */
+        let raw_bucket = type_name::<T>()
+            .rsplit("::")
+            .next()
+            .unwrap_or("unknown");
+
+        // ✱ sanitise to [A-Z a-z 0-9 _] only
+        let bucket: String = raw_bucket
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
+            .collect();
+
+        if bucket.is_empty() {
+            bail!("empty table name derived from type {}", raw_bucket);
+        }
+
+        /* ---------- build SQL (table name is inlined) ---- */
+        let sql = match filter_sql {
+            Some(f) => format!("SELECT json FROM {} {}", bucket, f),
+            None          => format!("SELECT json FROM {}", bucket)
+        };
+
+        let mut stmt = conn.prepare(&sql)?;
+
+        /* ---------- exec query ------------ */
+        let rows = stmt.query_map([], |row| { row.get::<_, String>(0) }).with_context(||format!("Failed to execute query {sql}"))?;
+
+        let mut out = Vec::<T>::new();
+        for json_res in rows {
+            let json = json_res?;
+            out.push(from_str::<T>(&json)?);
+        }
+
+        Ok(out)
+    }
+
+
+
+    pub fn load_from_db<T>(
+        &self,
+        // conn: &Connection,
+        id: &str,
+    ) -> Result<Option<T>>
+    where
+        T: DeserializeOwned,
+    {
+        let conn = &self.db_connection;
+        let bucket = std::any::type_name::<T>().rsplit("::").next().unwrap_or("unknown");
+    
+        let json: Option<String> = conn.query_row(
+            "SELECT json FROM storage WHERE type = ?1 AND id = ?2",
+            params![bucket, id],
+            |row| row.get(0),
+        ).optional()?;
+    
+        Ok(json.map(|js| serde_json::from_str::<T>(js.as_str())).transpose()?)
     }
 
     pub fn display_enums<T>(&self)
@@ -45,53 +212,150 @@ impl SpaceTradersService {
         }
     }
 
-    pub fn display_api_result<T>(&self, label: &str, outcome: &Result<T>)
+    pub fn display_api_result<T>(&self, label: &str, outcome: &anyhow::Result<Option<T>>)
     where
-        T: Serialize + Debug,
+        T: Serialize + Debug + TableRow,
     {
-        self._display_api_result_in_json::<T>(label, outcome);
+        match self.cfg.output_mode {
+            OutputMode::Json  => self._display_api_result_in_json(label, outcome),
+            OutputMode::Table => self._display_api_result_in_table(label, outcome),
+        }
     }
 
-    fn _display_api_result_in_json<T>(&self, label: &str, outcome: &Result<T>)
+    // pub fn save_agent_to_db(&self, agent: RegisterDataDTO) -> anyhow::Result<()>
+    // {
+    //     self.save_to_db::<RegisterDataDTO, String>(&self.db_connection, &agent, |a| a.agent.symbol.clone())
+    // }
+
+    /// Print an entire vector of models in table form.
+    ///
+    /// *If the vector is empty it prints a short notice instead of an empty table.*
+    pub fn display_results_as_table<T>(&self, items: Vec<T>)
+    where
+        T: Serialize + Debug + TableRow,
+    {
+        if items.is_empty() {
+            println!("No data to show!");
+            return;
+        }
+
+        let mut table = Table::new();
+        table
+            .load_preset(comfy_table::presets::UTF8_FULL)
+            .set_header(Row::from(T::headers()));
+
+        for item in items {
+            for row in item.to_rows() {
+                table.add_row(Row::from(row));
+            }
+        }
+
+        println!("{}", table);
+    }
+
+    fn _display_api_result_in_json<T>(&self, label: &str, outcome: &anyhow::Result<Option<T>>)
     where 
         T: Serialize + Debug
     {
         match outcome {
-            Ok(val) => {
+            Ok(Some(val)) => {
                 println!(
                     "{}\n{}",
                     format!("✔ {label} OK").green().bold(),
-                    serde_json::to_string_pretty(val)
-                        .unwrap_or_else(|_| format!("{:#?}", val))
+                    serde_json::to_string_pretty(val).unwrap_or_else(|_| format!("{:#?}", val))
                 );
             }
+            Ok(None) => println!("{} (no content)", format!("✔ {label} OK").green().bold()),
             Err(e) => {
                 println!("{}\n{e:?}", format!("✘ {label} FAILED").red().bold());
             }
         }
     }
 
-    pub async fn get<T>(&self, endpoint: &String) -> Result<Option<T>>
+    fn _display_api_result_in_table<T>(&self, label: &str, outcome: &anyhow::Result<Option<T>>)
     where
-        T: DeserializeOwned + Serialize + Debug,   // <- same bounds
+        T: TableRow + Serialize + Debug,
     {
-        self.get_with_headers::<T>(endpoint, None).await
+        match outcome {
+            Ok(val) => {
+                match val {
+                    Some(v) => {
+                        let mut table = Table::new();
+                        table
+                            .load_preset(comfy_table::presets::UTF8_FULL)
+                            .set_header(Row::from(T::headers()));
+                            // .add_row(Row::from(v.to_row()));
+
+                        for row in v.to_rows() {
+                            table.add_row(Row::from(row));
+                        }
+
+                        println!(
+                            "{}\n{}",
+                            format!("✔ {label} OK").green().bold(),
+                            table
+                        );
+                    },
+                    None => {
+                        println!("{}", format!("✘ {label} FAILED, there were no results to display").red().bold())
+                    }
+                }
+            },
+            Ok(None) => println!("{} (no content)", format!("✔ {label} OK").green().bold()),
+            Err(e) => println!("{}\n{e:?}", format!("✘ {label} FAILED").red().bold()),
+        }
+    }
+
+    pub async fn get<T>(&self, endpoint: &String, display_result: bool) -> Result<Option<T>>
+    where
+        T: DeserializeOwned + Serialize + Debug + TableRow,   // <- same bounds
+    {
+        self.get_with_headers::<T>(endpoint, None, display_result).await
     }
 
     pub async fn get_with_headers<T>(
         &self,
         endpoint: &str,
         extra: Option<HeaderMap>,
+        display_result: bool
     ) -> anyhow::Result<Option<T>>
     where
-        T: DeserializeOwned + Serialize + Debug,
+        T: DeserializeOwned + Serialize + Debug + TableRow,
     {
         let result = self
             .send_request::<T, ()>(endpoint, SupportedHttpMethods::Get, None, extra)
             .await;
 
-        self.display_api_result(&format!("GET {endpoint}"), &result);
+        if (display_result) {
+            self.display_api_result(&format!("GET {endpoint}"), &result);
+        }
         result
+    }
+
+    pub async fn get_with_headers_and_paging<D>(
+        &self,
+        endpoint: &str,
+        extra: Option<HeaderMap>,
+        display_result: bool
+    ) -> anyhow::Result<()>
+    where
+        D: DeserializeOwned + Serialize + Debug + TableRow,
+    {
+        let result = self
+            .send_request_with_paging::<D, ()>(endpoint, SupportedHttpMethods::Get, None, extra)
+            .await;
+
+        if (display_result) {
+            match result? {
+                Some(res) => {
+                    self.display_results_as_table(res);
+                },
+                None => {
+                    bail!("Something hardcore messed up with get_with_heders_and_paging")
+                }
+            }
+        }
+        Ok(())
     }
 
     pub fn get_agent_headers(&self, agent_token: &String) -> anyhow::Result<HeaderMap> {
@@ -112,8 +376,8 @@ impl SpaceTradersService {
         Ok((hdr))
     }
 
-    pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug + Clone, B: Serialize + ?Sized {
-        self.post_with_headers::<T, B>(endpoint, body, None).await
+    pub async fn post<T, B>(&self, endpoint: &String, body: Option<&B>, display_result: bool) -> anyhow::Result<T> where T: DeserializeOwned + Serialize + Debug + Clone + TableRow, B: Serialize + ?Sized {
+        self.post_with_headers::<T, B>(endpoint, body, None, display_result).await
     }
 
     pub async fn post_with_headers<T, B>(
@@ -121,9 +385,10 @@ impl SpaceTradersService {
         endpoint: &str,
         body: Option<&B>,
         extra: Option<HeaderMap>,
+        display_result: bool
     ) -> anyhow::Result<T>
     where
-        T: DeserializeOwned + Serialize + Debug + Clone,
+        T: DeserializeOwned + Serialize + Debug + Clone + TableRow,
         B: Serialize + ?Sized,
     {
         let wrapped = self
@@ -131,7 +396,9 @@ impl SpaceTradersService {
             .await?
             .expect("POST endpoints must return a body");
     
-        self.display_api_result(&format!("POST {endpoint}"), &Ok(wrapped.clone()));
+        if (display_result) {
+            self.display_api_result(&format!("POST {endpoint}"), &Ok(Some(wrapped.clone())));
+        }
         Ok(wrapped)
     }
 
@@ -156,6 +423,32 @@ impl SpaceTradersService {
                     ._post_request_by_http::<T, B>(endpoint, body, extra_headers)
                     .await?;
                 Ok(Some(value))         // ← no semicolon here
+            }
+        }
+    }
+
+    pub async fn send_request_with_paging<D, B>(
+        &self,
+        endpoint: &str,
+        http_method: SupportedHttpMethods,
+        body: Option<&B>,
+        extra_headers: Option<HeaderMap>,
+    ) -> anyhow::Result<Option<Vec<D>>>
+    where
+        // E: DeserializeOwned + Serialize,
+        D: DeserializeOwned + Serialize,
+        B: Serialize + ?Sized,
+    {
+        match http_method {
+            SupportedHttpMethods::Get => {
+                self._get_request_by_http_with_paging::<D>(endpoint, extra_headers).await
+            }
+    
+            SupportedHttpMethods::Post => {
+                let value = self
+                    ._post_request_by_http::<D, B>(endpoint, body, extra_headers)
+                    .await?;
+                Ok(Some(vec![value]))         // ← no semicolon here
             }
         }
     }
@@ -202,6 +495,81 @@ impl SpaceTradersService {
         /* ========== success branch ========== */
         let value = resp.json::<T>().await?;
         Ok(Some(value))
+    }
+
+    async fn _get_request_by_http_with_paging<D>(
+        &self,
+        endpoint: &str,
+        extra: Option<HeaderMap>,
+    ) -> anyhow::Result<Option<Vec<D>>>
+    where
+        D: DeserializeOwned
+    {
+        const MAX_RETRIES: usize   = 5;
+        const MAX_DELAY:   u64     = 30;            // seconds
+
+        let mut page  = 1u32;
+        let mut items = Vec::<D>::new();
+
+        loop {
+            /* -------- build request URL with ?page= -------- */
+            let url = format!("{}/{endpoint}?page={page}", self.base);
+            let mut req = self.http.get(url);
+            if let Some(h) = &extra { req = req.headers(h.clone()); }
+
+            /* -------- send with retry on 429 --------------- */
+            let resp = {
+                let mut tries = 0;
+                loop {
+                    let r = req.try_clone().expect("req is cloneable").send().await?;
+
+                    if r.status() != StatusCode::TOO_MANY_REQUESTS {
+                        break r;                                // success or other error
+                    }
+
+                    tries += 1;
+                    if tries > MAX_RETRIES {
+                        bail!("hit HTTP 429 too many times");
+                    }
+
+                    /* back-off: use Retry-After header if present */
+                    let delay = r
+                        .headers()
+                        .get("Retry-After")
+                        .and_then(|v| v.to_str().ok())
+                        .and_then(|s| s.parse::<u64>().ok())
+                        .unwrap_or_else(|| {
+                            // exponential 1,2,4… + jitter up to 200 ms
+                            let base = 1 << (tries - 1);                         // 1,2,4…
+                            let jitter: u64 = thread_rng().gen_range(0..200);    // ms
+                            std::cmp::min(base, MAX_DELAY) * 1_000 + jitter
+                        });
+
+                    sleep(Duration::from_millis(delay)).await;
+                }
+            };
+
+            if resp.status() == StatusCode::NO_CONTENT {
+                break;                                    // nothing more
+            }
+            if !resp.status().is_success() {
+                let status = resp.status();
+                let text   = resp.text().await.unwrap_or_default();
+                bail!("HTTP {}: {}", status, text);
+            }
+
+            /* -------- decode page envelope ---------------- */
+            let env: PageEnvelopeDTO<D> = resp.json().await.context("json decode")?;
+            items.extend(env.data);
+
+            let total_pages =
+                (env.meta.total + env.meta.limit - 1) / env.meta.limit;
+
+            if env.meta.page >= total_pages { break; }
+            page += 1;
+        }
+
+        Ok(Some(items))
     }
     
     async fn _post_request_by_http<T, B>(

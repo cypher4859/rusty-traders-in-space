@@ -41,7 +41,7 @@ impl ModuleService {
         let agent_token: String = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("my/ships/{}/modules/remove", ship_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<ModuleDataEnvelopeEnumDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<ModuleDataEnvelopeEnumDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some(res) => {
                 Ok(res)
@@ -59,7 +59,7 @@ impl ModuleService {
         let body = RequestModuleDTO::new(
             module_name.clone()
         )?;
-        let response = self.st.post_with_headers::<ModuleInstallDataEnvelopeDTO, RequestModuleDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let response = self.st.post_with_headers::<ModuleInstallDataEnvelopeDTO, RequestModuleDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(response)
     }
 
@@ -70,7 +70,7 @@ impl ModuleService {
         let body = RequestModuleDTO::new(
             module_name.clone()
         )?;
-        let response = self.st.post_with_headers::<ModuleRemoveDataEnvelopeDTO, RequestModuleDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let response = self.st.post_with_headers::<ModuleRemoveDataEnvelopeDTO, RequestModuleDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(response)
     }
 }

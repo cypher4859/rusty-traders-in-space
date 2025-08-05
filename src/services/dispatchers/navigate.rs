@@ -68,7 +68,7 @@ impl NavigateService {
     async fn _navigate_orbit(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<NavigateOrbitDataEnvelopeDTO> {
         let endpoint: String = format!("my/ships/{}/orbit", ship_symbol);
         let headers = self.st.get_agent_headers(agent_token)?;
-        let result = self.st.post_with_headers::<NavigateOrbitDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
+        let result = self.st.post_with_headers::<NavigateOrbitDataEnvelopeDTO, ()>(&endpoint, None, Some(headers), true).await?;
         Ok(result)
     }
 
@@ -78,21 +78,21 @@ impl NavigateService {
         let body = RequestNavigateToWaypointDTO::new(
             waypoint_symbol
         )?;
-        let result = self.st.post_with_headers::<NavigateWaypointDataEnvelopeDTO, RequestNavigateToWaypointDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let result = self.st.post_with_headers::<NavigateWaypointDataEnvelopeDTO, RequestNavigateToWaypointDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(result)
     }
 
     async fn _dock_at_station(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<NavigateDockDataEnvelopeDTO> {
         let endpoint: String = format!("my/ships/{}/dock", ship_symbol);
         let headers = self.st.get_agent_headers(agent_token)?;
-        let result = self.st.post_with_headers::<NavigateDockDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
+        let result = self.st.post_with_headers::<NavigateDockDataEnvelopeDTO, ()>(&endpoint, None, Some(headers), true).await?;
         Ok(result)
     }
 
     async fn _get_navigation_status(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<NavigateStatusDataEnvelopeDTO> {
         let endpoint: String = format!("my/ships/{}/nav", ship_symbol);
         let headers = self.st.get_agent_headers(agent_token)?;
-        let result = self.st.get_with_headers::<NavigateStatusDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let result = self.st.get_with_headers::<NavigateStatusDataEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match result {
             Some(res) => {
                 Ok(res)
@@ -109,7 +109,7 @@ impl NavigateService {
         let body = RequestWarpToWaypointDTO::new(
             waypoint_symbol
         )?;
-        let result = self.st.post_with_headers::<NavigateWarpDataEnvelopeDTO, RequestWarpToWaypointDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let result = self.st.post_with_headers::<NavigateWarpDataEnvelopeDTO, RequestWarpToWaypointDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(result)
     }
 
@@ -119,7 +119,7 @@ impl NavigateService {
         let body = RequestJumpToWaypointDTO::new(
             waypoint_symbol
         )?;
-        let result = self.st.post_with_headers::<NavigateJumpDataEnvelopeDTO, RequestJumpToWaypointDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let result = self.st.post_with_headers::<NavigateJumpDataEnvelopeDTO, RequestJumpToWaypointDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(result)
     }
 }

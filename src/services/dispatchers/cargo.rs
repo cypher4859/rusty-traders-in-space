@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::{fmt::DebugStruct, str::FromStr};
 use crate::config::Config;
-use crate::constants::enum_lookups::InventoryItemSymbol;
+use crate::helpers::enum_lookups::InventoryItemSymbol;
 use crate::dto::requests::cargo_request_dto::{RequestCargoBuyDTO, RequestCargoJettisonDTO, RequestCargoSellDTO, RequestCargoTransferDTO};
 use crate::dto::responses::fleet_dto::{CargoCargoDataEnvelopeDTO, CargoDataEnvelopeDTO};
 use crate::SpaceTradersService;
@@ -53,7 +53,7 @@ impl CargoService {
             inventory_item_symbol,
             cargo_units
         )?;
-        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoBuyDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoBuyDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(())
     }
 
@@ -65,7 +65,7 @@ impl CargoService {
             inventory_item_symbol,
             cargo_units
         )?;
-        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoJettisonDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoJettisonDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(())
     }
 
@@ -77,7 +77,7 @@ impl CargoService {
             inventory_item_symbol,
             cargo_units
         )?;
-        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoSellDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoSellDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(())
     }
 
@@ -90,14 +90,14 @@ impl CargoService {
             cargo_units,
             ship_symbol.clone()
         )?;
-        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoTransferDTO>(&endpoint, Some(&body), Some(headers));
+        self.st.post_with_headers::<CargoCargoDataEnvelopeDTO, RequestCargoTransferDTO>(&endpoint, Some(&body), Some(headers), true);
         Ok(())
     }
 
     async fn _list_cargo(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<()> {
         let endpoint: String = format!("my/ships/{}/cargo", ship_symbol);
         let headers = self.st.get_agent_headers(agent_token)?;
-        self.st.get_with_headers::<CargoDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        self.st.get_with_headers::<CargoDataEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         Ok(())
     }
 }

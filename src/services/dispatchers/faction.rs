@@ -2,7 +2,8 @@ use std::sync::Arc;
 use anyhow::bail;
 
 use crate::config::Config;
-use crate::{FactionEnvelopeDTO, SpaceTradersService};
+use crate::dto::responses::faction_dto::FactionDataDTO;
+use crate::{FactionDTO, FactionEnvelopeDTO, SpaceTradersService};
 
 pub struct FactionService {
     cfg: Arc<Config>,
@@ -30,7 +31,7 @@ impl FactionService {
         Ok(())
     }
 
-    pub async fn show_all_factions(&self) -> anyhow::Result<FactionEnvelopeDTO> {
+    pub async fn show_all_factions(&self) -> anyhow::Result<()> {
         self._show_all_factions().await
     }
 
@@ -41,7 +42,7 @@ impl FactionService {
     async fn _search_factions(&self, faction_name: &String) -> anyhow::Result<FactionEnvelopeDTO> {
         let uppercase_faction_name = faction_name.to_uppercase();
         let endpoint: String = format!("factions/{uppercase_faction_name}");
-        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await?;
+        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint, true).await?;
         match result {
             Some(res) => {
                 Ok(res)
@@ -52,16 +53,9 @@ impl FactionService {
         }
     }
 
-    async fn _show_all_factions(&self) -> anyhow::Result<FactionEnvelopeDTO> {
+    async fn _show_all_factions(&self) -> anyhow::Result<()> {
         let endpoint: String = String::from("factions");
-        let result = self.st.get::<FactionEnvelopeDTO>(&endpoint).await?;
-        match result {
-            Some(res) => {
-                Ok(res)
-            }
-            None => {
-                bail!("No factions were acquired!");
-            }
-        }
+        let result = self.st.get_with_headers_and_paging::<FactionDTO>(&endpoint, None, true).await?;
+        Ok(())
     }
 }

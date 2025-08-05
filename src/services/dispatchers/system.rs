@@ -49,9 +49,9 @@ impl SystemService {
         Ok(self._get_waypoint_by_symbol(&system_symbol, waypoint_symbol).await?)
     }
 
-    pub async fn get_market(&self, waypoint_symbol: &String) -> anyhow::Result<MarketEnvelopeDTO> {
+    pub async fn get_market(&self, waypoint_symbol: &String, ship_symbol: &Option<String>) -> anyhow::Result<MarketEnvelopeDTO> {
         let system_symbol = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
-        Ok(self._get_market_by_system_waypiont(&system_symbol, waypoint_symbol).await?)
+        Ok(self._get_market_by_system_waypoint(&system_symbol, waypoint_symbol, ship_symbol).await?)
     }
 
     pub async fn get_shipyard(&self, waypoint_symbol: &String) -> anyhow::Result<ShipyardEnvelopeDTO> {
@@ -78,7 +78,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = String::from("systems");
         let headers = self.st.get_agent_headers(&agent_token);
-        let response = self.st.get_with_headers::<SystemListEnvelopeDTO>(&endpoint, Some(headers?)).await?;
+        let response = self.st.get_with_headers::<SystemListEnvelopeDTO>(&endpoint, Some(headers?), true).await?;
         match response {
             Some (res) => {
                 Ok(res)
@@ -93,7 +93,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("systems/{}", system_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<SystemEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<SystemEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some (res) => {
                 Ok(res)
@@ -108,7 +108,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("systems/{}/waypoints", system_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<WaypointListEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<WaypointListEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some (res) => {
                 Ok(res)
@@ -123,7 +123,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("systems/{}/waypoints/{}", system_symbol, waypoint_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<WaypointEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<WaypointEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some (res) => {
                 Ok(res)
@@ -134,11 +134,19 @@ impl SystemService {
         }
     }
 
-    async fn _get_market_by_system_waypiont(&self, system_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<MarketEnvelopeDTO> {
-        let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
+    async fn _get_market_by_system_waypoint(&self, system_symbol: &String, waypoint_symbol: &String, ship_symbol: &Option<String>) -> anyhow::Result<MarketEnvelopeDTO> {
         let endpoint: String = format!("systems/{}/waypoints/{}/market", system_symbol, waypoint_symbol);
-        let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<MarketEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let &mut response;
+        match ship_symbol {
+            Some(ship) => {
+                let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
+                let headers = self.st.get_agent_headers(&agent_token)?;
+                response = self.st.get_with_headers::<MarketEnvelopeDTO>(&endpoint, Some(headers), true).await?;                
+            },
+            None => {
+                response = self.st.get::<MarketEnvelopeDTO>(&endpoint, true).await?;
+            }
+        }
         match response {
             Some (res) => {
                 Ok(res)
@@ -153,7 +161,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("systems/{}/waypoints/{}/shipyard", system_symbol, waypoint_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<ShipyardEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<ShipyardEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some (res) => {
                 Ok(res)
@@ -168,7 +176,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("systems/{}/waypoints/{}/jump-gate", system_symbol, waypoint_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<JumpGateEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<JumpGateEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some (res) => {
                 Ok(res)
@@ -183,7 +191,7 @@ impl SystemService {
         let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("systems/{}/waypoints/{}/construction", system_symbol, waypoint_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<ConstructionSiteEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<ConstructionSiteEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some(res) => {
                 Ok(res)
@@ -203,7 +211,7 @@ impl SystemService {
             units.clone(),
             ship_symbol.clone()
         )?;
-        let response = self.st.post_with_headers::<ConstructionSiteDTO, RequestSystemSupplyConstructionDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let response = self.st.post_with_headers::<ConstructionSiteDTO, RequestSystemSupplyConstructionDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(response)
     }
 

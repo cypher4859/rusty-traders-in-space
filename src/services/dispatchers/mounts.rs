@@ -43,7 +43,7 @@ impl MountService {
         let agent_token: String = self.agent_svc.get_current_selected_agent_token().await?;
         let endpoint: String = format!("my/ships/{}/mounts/remove", ship_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<MountDataEnvelopeEnumDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<MountDataEnvelopeEnumDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some(res) => {
                 Ok(res)
@@ -61,7 +61,7 @@ impl MountService {
         let body = RequestMountDTO::new(
             mount_name.clone()
         )?;
-        let response = self.st.post_with_headers::<MountInstallDataEnvelopeDTO, RequestMountDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let response = self.st.post_with_headers::<MountInstallDataEnvelopeDTO, RequestMountDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(response)
     }
 
@@ -72,7 +72,7 @@ impl MountService {
         let body = RequestMountDTO::new(
             mount_name.clone()
         )?;
-        let response = self.st.post_with_headers::<MountRemoveDataEnvelopeDTO, RequestMountDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let response = self.st.post_with_headers::<MountRemoveDataEnvelopeDTO, RequestMountDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(response)
     }
 }

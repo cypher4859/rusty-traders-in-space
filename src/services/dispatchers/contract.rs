@@ -72,7 +72,7 @@ impl ContractService {
             AUTHORIZATION,
             HeaderValue::from_str(&format!("Bearer {}", agent_token))?
         );
-        self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr)).await?;
+        self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr), true).await?;
         Ok(())
     }
 
@@ -84,7 +84,7 @@ impl ContractService {
             AUTHORIZATION,
             HeaderValue::from_str(&format!("Bearer {}", agent_token))?
         );
-        self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr)).await?;
+        self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr), true).await?;
         Ok(())
     }
 
@@ -95,7 +95,7 @@ impl ContractService {
             AUTHORIZATION,
             HeaderValue::from_str(&format!("Bearer {}", agent_token))?
         );
-        self.st.post_with_headers::<ContractEnvelopeDTO, ()>(&endpoint, None, Some(hdr)).await?;
+        self.st.post_with_headers::<ContractEnvelopeDTO, ()>(&endpoint, None, Some(hdr), true).await?;
         Ok(())
     }
 
@@ -114,7 +114,7 @@ impl ContractService {
             units,
             ship_symbol
         )?;
-        self.st.post_with_headers::<ContractEnvelopeDTO, RequestDeliverDTO>(&endpoint, Some(&body), Some(hdr)).await?;
+        self.st.post_with_headers::<ContractEnvelopeDTO, RequestDeliverDTO>(&endpoint, Some(&body), Some(hdr), true).await?;
         Ok(())
     }
 
@@ -132,7 +132,7 @@ impl ContractService {
             AUTHORIZATION,
             HeaderValue::from_str(&format!("Bearer {}", agent_token))?
         );
-        self.st.post_with_headers::<ContractEnvelopeDTO, ()>(&endpoint, None, Some(hdr)).await?;
+        self.st.post_with_headers::<ContractEnvelopeDTO, ()>(&endpoint, None, Some(hdr), true).await?;
         Ok(())
     }
 }

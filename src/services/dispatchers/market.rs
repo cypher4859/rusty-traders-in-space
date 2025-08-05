@@ -24,9 +24,8 @@ impl MarketService {
         self._get_market_supply_chain().await
     }
 
-    pub async fn get_market(&self, waypoint_symbol: &String) -> anyhow::Result<MarketEnvelopeDTO> {
-        let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
-        let market = self._get_market(&agent_token, waypoint_symbol).await?;
+    pub async fn get_market(&self, waypoint_symbol: &String, ship_symbol: &Option<String>) -> anyhow::Result<MarketEnvelopeDTO> {
+        let market = self._get_market(&ship_symbol, waypoint_symbol).await?;
         match market {
             Some(mar) => {
                 Ok(mar)
@@ -41,7 +40,7 @@ impl MarketService {
     async fn _get_market_supply_chain(&self) -> anyhow::Result<MarketSupplyChainDataEnvelopeDTO> {
         let endpoint: String = format!("market/supply-chain");
         let headers = self.st.get_account_headers()?;
-        let result = self.st.get_with_headers::<MarketSupplyChainDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let result = self.st.get_with_headers::<MarketSupplyChainDataEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match result {
             Some(res) => {
                 Ok(res)
@@ -53,11 +52,21 @@ impl MarketService {
         }
     }
 
-    async fn _get_market(&self, agent_token: &String, waypoint_symbol: &String) -> anyhow::Result<Option<MarketEnvelopeDTO>> {
+    async fn _get_market(&self, ship_symbol: &Option<String>, waypoint_symbol: &String) -> anyhow::Result<Option<MarketEnvelopeDTO>> {
+        // TODO: If our agent is at the same location as the waypoint then we should send headers
+        let &mut response;
         let system_symbol: String = self.st.split_waypoint_to_get_system_symbol(waypoint_symbol);
         let endpoint: String = format!("systems/{}/waypoints/{}/market", system_symbol, waypoint_symbol);
-        let headers = self.st.get_agent_headers(agent_token)?;
-        let result = self.st.get::<MarketEnvelopeDTO>(&endpoint).await?;
-        Ok(result)
+        match ship_symbol {
+            Some(ship) => {
+                let agent_token = self.agent_svc.get_current_selected_agent_token().await?;
+                let headers = self.st.get_agent_headers(&agent_token)?;
+                response = self.st.get_with_headers::<MarketEnvelopeDTO>(&endpoint, Some(headers), true).await?;
+            },
+            None => {
+                response = self.st.get::<MarketEnvelopeDTO>(&endpoint, true).await?;
+            }
+        }
+        Ok(response)
     }
 }

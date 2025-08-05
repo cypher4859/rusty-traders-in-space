@@ -1,3 +1,4 @@
+use std::alloc::System;
 use std::sync::Arc;
 use anyhow::bail;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
@@ -22,6 +23,7 @@ use crate::dto::responses::nav_dto::NavigateOrbitDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateStatusDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateWarpDataEnvelopeDTO;
 use crate::dto::responses::nav_dto::NavigateWaypointDataEnvelopeDTO;
+use crate::dto::responses::supply_chain_dto::MarketEnvelopeDTO;
 use crate::dto::responses::system_dto::ChartDataEnvelopeDTO;
 use crate::model::Cooldown;
 use crate::model::Ship;
@@ -35,6 +37,7 @@ use crate::MountService;
 use crate::NavigateService;
 use crate::ScanService;
 use crate::SpaceTradersService;
+use crate::SystemService;
 
 #[derive(Clone)]
 pub struct ShipService {
@@ -45,7 +48,8 @@ pub struct ShipService {
     scanner: Arc<ScanService>,
     navigator: Arc<NavigateService>,
     mount: Arc<MountService>,
-    module: Arc<ModuleService>
+    module: Arc<ModuleService>,
+    system: Arc<SystemService>
 }
 
 impl ShipService {
@@ -55,7 +59,8 @@ impl ShipService {
         scanner: Arc<ScanService>,
         navigator: Arc<NavigateService>,
         mount: Arc<MountService>,
-        module: Arc<ModuleService>
+        module: Arc<ModuleService>,
+        system: Arc<SystemService>
     ) -> Self {
         Self { 
             cfg,
@@ -65,7 +70,8 @@ impl ShipService {
             scanner,
             navigator,
             mount,
-            module
+            module,
+            system
         }
     }
 
@@ -77,7 +83,7 @@ impl ShipService {
         for i in 0..agent.ship_count as usize {
             let mut num = i + 1;
             let mut ship_name = format!("{agent_symbol}-{num}");
-            let mut ship = self.get_ship(&ship_name).await?;
+            let mut ship = self._get_ship(&ship_name).await?;
             ships.push(ship.clone());
         }
         Ok(ships)
@@ -135,15 +141,20 @@ impl ShipService {
         self._jump_to_waypoint(ship_symbol, waypoint_symbol).await
     }
 
-    pub async fn scan_systems(&self) -> anyhow::Result<()> {
+    pub async fn scan_market(&self, ship_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<MarketEnvelopeDTO> {
+        // Ok(self.scanner.scan_waypoints().await?)
+        Ok(self.system.get_market(waypoint_symbol, &Some(ship_symbol.to_owned())).await?)
+    }
+
+    pub async fn scan_systems(&self, ship_symbol: &String, system_symbol: &String) -> anyhow::Result<()> {
         Ok(self.scanner.scan_systems().await?)
     }
 
-    pub async fn scan_waypoints(&self) -> anyhow::Result<()> {
+    pub async fn scan_waypoints(&self, ship_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<()> {
         Ok(self.scanner.scan_waypoints().await?)
     }
 
-    pub async fn scan_ships(&self) -> anyhow::Result<()> {
+    pub async fn scan_ships(&self, ship_symbol: &String, target_ship_symbol: &String) -> anyhow::Result<()> {
         Ok(self.scanner.scan_ships().await?)
     }
 
@@ -216,7 +227,7 @@ impl ShipService {
         let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.post_with_headers::<ChartDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
+        let response = self.st.post_with_headers::<ChartDataEnvelopeDTO, ()>(&endpoint, None, Some(headers), true).await?;
         Ok(response)
     }
 
@@ -225,7 +236,7 @@ impl ShipService {
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let endpoint: String = format!("my/ships/{}/cooldown", ship_symbol);
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<CooldownEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<CooldownEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some(resp) => {
                 Ok(resp)
@@ -236,19 +247,20 @@ impl ShipService {
         }
     }
 
-    async fn _get_ship_by_symbol(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<Ship> {
+    async fn _get_ship_by_symbol(&self, agent_token: &String, ship_symbol: &String, display_result: bool) -> anyhow::Result<Ship> {
         let endpoint: String = format!("my/ships/{}", ship_symbol);
         let headers = self.st.get_agent_headers(agent_token)?;
-        let ship_envelope: Option<ShipDataEnvelopeDTO> = self.st.get_with_headers::<ShipDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
-        match ship_envelope {
+        let ship_envelope: Option<ShipDataEnvelopeDTO> = self.st.get_with_headers::<ShipDataEnvelopeDTO>(&endpoint, Some(headers), display_result).await?;
+        let result = match ship_envelope {
             Some(envelope) => {
-                Ok(envelope.data.try_into()?)
+                envelope.data.try_into()
             }
 
             None => {
                 bail!("Ship wasn't found by symbol {}", ship_symbol)
             }
-        }
+        };
+        result
     }
 
     async fn _refuel_ship(&self, ship_symbol: &String, use_cargo_fuel: &bool, units_of_fuel: &Option<u32>) -> anyhow::Result<ShipRefuelDataEnvelopeDTO> {
@@ -260,14 +272,14 @@ impl ShipService {
             use_cargo_fuel.clone(),
             units_of_fuel.clone()
         )?;
-        let resp: ShipRefuelDataEnvelopeDTO = self.st.post_with_headers::<ShipRefuelDataEnvelopeDTO, RequestRefuelShipDTO>(&endpoint, Some(&body), Some(headers)).await?;
+        let resp: ShipRefuelDataEnvelopeDTO = self.st.post_with_headers::<ShipRefuelDataEnvelopeDTO, RequestRefuelShipDTO>(&endpoint, Some(&body), Some(headers), true).await?;
         Ok(resp)
     }
 
     async fn _get_ship(&self, ship_name: &String) -> anyhow::Result<Ship> {
         let agent = self._get_agent_symbol_by_ship_symbol(ship_name);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
-        let ship = self._get_ship_by_symbol(&agent_token, ship_name).await?;
+        let ship = self._get_ship_by_symbol(&agent_token, ship_name, false).await?;
         Ok(ship)
     }
 
@@ -360,7 +372,7 @@ impl ShipService {
         let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<ShipRepairStatusDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<ShipRepairStatusDataEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some(resp) => {
                 Ok(resp)
@@ -376,7 +388,7 @@ impl ShipService {
         let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let resp: ShipRepairDataEnvelopeDTO = self.st.post_with_headers::<ShipRepairDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
+        let resp: ShipRepairDataEnvelopeDTO = self.st.post_with_headers::<ShipRepairDataEnvelopeDTO, ()>(&endpoint, None, Some(headers), true).await?;
         Ok(resp)
     }
 
@@ -385,7 +397,7 @@ impl ShipService {
         let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let response = self.st.get_with_headers::<ShipScrapStatusDataEnvelopeDTO>(&endpoint, Some(headers)).await?;
+        let response = self.st.get_with_headers::<ShipScrapStatusDataEnvelopeDTO>(&endpoint, Some(headers), true).await?;
         match response {
             Some(resp) => {
                 Ok(resp)
@@ -401,7 +413,7 @@ impl ShipService {
         let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let headers = self.st.get_agent_headers(&agent_token)?;
-        let resp: ShipScrapDataEnvelopeDTO = self.st.post_with_headers::<ShipScrapDataEnvelopeDTO, ()>(&endpoint, None, Some(headers)).await?;
+        let resp: ShipScrapDataEnvelopeDTO = self.st.post_with_headers::<ShipScrapDataEnvelopeDTO, ()>(&endpoint, None, Some(headers), true).await?;
         Ok(resp)
     }
 }
