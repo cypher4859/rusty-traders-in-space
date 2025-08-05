@@ -1,7 +1,7 @@
 use std::{fmt::DebugStruct, str::FromStr};
 use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
-use strum_macros::{EnumIter, EnumString};
+use strum_macros::{Display, EnumIter, EnumString};
 
 
 
@@ -113,6 +113,7 @@ pub enum FrameSymbol {
     Interceptor,
     Racer,
     Fighter,
+    #[strum(serialize = "FRAME_FRIGATE")]
     Frigate,
     Shuttle,
     Explorer,
@@ -430,10 +431,24 @@ pub enum WaypointType {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
 pub enum ReactorSymbol {
-    SolarI,        // "REACTOR_SOLAR_I"
-    FusionI,       // "REACTOR_FUSION_I"
-    FissionI,      // "REACTOR_FISSION_I"
-    ChemicalI,     // "REACTOR_CHEMICAL_I"
-    AntimatterI,   // "REACTOR_ANTIMATTER_I"
+    ReactorSolarI,        // "REACTOR_SOLAR_I"
+    ReactorFusionI,       // "REACTOR_FUSION_I"
+    ReactorFissionI,      // "REACTOR_FISSION_I"
+    ReactorChemicalI,     // "REACTOR_CHEMICAL_I"
+    ReactorAntimatterI,   // "REACTOR_ANTIMATTER_I"
 }
 
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash,
+    Serialize, Deserialize,
+    EnumIter,
+    EnumString,
+    Display
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
+pub enum NavStatus {
+    InTransit,
+    InOrbit,
+    Docked
+}
