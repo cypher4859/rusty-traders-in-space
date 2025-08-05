@@ -14,7 +14,7 @@ Tools to use for prettyprinting
 ### Done Commands
 These command groups are finished with the exception of error handling, cleanup, etc. Simply put: These are just wired up to their respective HTTP call. Currently the agent de/activation logic needs improved, i.e. I'm actually hardcoding the agent to use and that needs to be dynamic
 - [X] Factions
-- [-] Agents
+- [X] Agents
 - [X] Contracts
 - [] Fleet
 - [X] Systems
