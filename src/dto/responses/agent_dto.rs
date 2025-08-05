@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::helpers::table_helpers::TableRow;
 use crate::model::agent_model::{Agent, RegisterResult};
 use crate::model::ship_model::{Ship};
 use crate::dto::responses::faction_dto::{FactionDTO};
@@ -9,6 +10,23 @@ use crate::dto::responses::util_dto::MetaDTO;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RegisterEnvelopeDTO {
     pub data: RegisterDataDTO,
+}
+
+impl TableRow for RegisterEnvelopeDTO {
+    fn headers() -> Vec<&'static str> {
+        vec!["Token", "Name", "HQ", "Faction", "Ships"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        vec![
+            // self.data.agent.account_id.clone(),
+            self.data.token.clone(),
+            self.data.agent.symbol.clone(),
+            self.data.agent.hq.clone(),
+            self.data.agent.starting_faction.clone(),
+            self.data.agent.ship_count.to_string()
+        ]
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -43,9 +61,81 @@ pub struct AgentEnvelopeWithMetaDTO {
     pub meta: MetaDTO
 }
 
+impl TableRow for AgentEnvelopeWithMetaDTO {
+    fn headers() -> Vec<&'static str> {
+        vec!["Name", "Credits", "HQ", "Faction", "Ships"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        Vec::new()
+    }
+
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows: Vec<Vec<String>> = Vec::new();
+        match &self.data {
+            AgentDataDTO::Single(agent) => {
+                rows.extend(vec![vec![
+                    agent.symbol.clone(),
+                    agent.credits.to_string(),
+                    agent.hq.clone(),
+                    agent.starting_faction.clone(),
+                    agent.ship_count.to_string()
+                ]]);
+                rows
+            },
+            AgentDataDTO::List(agents) => {
+                rows.extend(agents.iter().map(|agent| {
+                    vec![
+                        agent.symbol.clone(),
+                        agent.credits.to_string(),
+                        agent.hq.clone(),
+                        agent.starting_faction.clone(),
+                        agent.ship_count.to_string()
+                    ]
+                }));
+                rows
+            }
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AgentEnvelopeDTO {
     pub data: AgentDataDTO,
+}
+
+impl TableRow for AgentEnvelopeDTO {
+    fn headers() -> Vec<&'static str> {
+        vec!["Name", "Credits", "HQ", "Faction", "Ships"]
+    }
+
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows: Vec<Vec<String>> = Vec::new();
+        match &self.data {
+            AgentDataDTO::Single(agent) => {
+                rows.extend(vec![vec![
+                    agent.symbol.clone(),
+                    agent.credits.to_string(),
+                    agent.hq.clone(),
+                    agent.starting_faction.clone(),
+                    agent.ship_count.to_string()
+                ]]);
+                rows
+            },
+            AgentDataDTO::List(agents) => {
+                rows.extend(agents.iter().map(|agent| {
+                    vec![
+                        agent.symbol.clone(),
+                        agent.credits.to_string(),
+                        agent.hq.clone(),
+                        agent.starting_faction.clone(),
+                        agent.ship_count.to_string()
+                    ]
+                }));
+                rows
+            }
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -62,13 +152,30 @@ pub struct AgentDTO {
     pub ship_count: u32
 }
 
+impl TableRow for AgentDTO {
+    fn headers() -> Vec<&'static str> {
+        vec!["Account", "Name", "HQ", "Credits", "Faction", "Ships"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        vec![
+            Some(self.account_id.clone()).expect("Missing Account ID").unwrap_or_else(|| String::from("Not Available")),
+            self.symbol.clone(),
+            self.hq.clone(),
+            self.credits.to_string(),
+            self.starting_faction.clone(),
+            self.ship_count.to_string()
+        ]
+    }
+}
+
 impl TryFrom<AgentDTO> for Agent {
     type Error = anyhow::Error;
 
     fn try_from(dto: AgentDTO) -> anyhow::Result<Self> {
         let account_id = dto
             .account_id
-            .ok_or_else(|| anyhow::anyhow!("account_id absent in this context"))?;
+            .unwrap_or(String::from("<Hidden>"));
 
         Agent::new(
             account_id,
@@ -76,7 +183,8 @@ impl TryFrom<AgentDTO> for Agent {
             dto.credits, 
             dto.hq,
             dto.starting_faction,
-            dto.ship_count
+            dto.ship_count,
+            None
         )
     }
 }

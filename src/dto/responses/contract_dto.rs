@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use anyhow::{Result, anyhow, ensure};
-use crate::dto::responses::util_dto::MetaDTO;
+use crate::{dto::responses::util_dto::MetaDTO, helpers::table_helpers::TableRow};
 
 use super::fleet_dto::CargoDTO;
 
@@ -20,6 +20,36 @@ pub struct ContractEnvelopeWithMetaDTO {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ContractEnvelopeDTO {
     pub data: ContractDataDTO,
+}
+
+impl TableRow for ContractEnvelopeDTO {
+    fn headers() -> Vec<&'static str> {
+        vec!["ID", "Type", "Faction", "Accepted", "Expiration"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        match &self.data {
+            ContractDataDTO::Single(contract) => {
+                vec![
+                    contract.id.clone(),
+                    contract.contract_type.clone(),
+                    contract.faction_symbol.clone(),
+                    contract.accepted.to_string(),
+                    contract.expiration.clone(),
+                ]
+            },
+            ContractDataDTO::List(contracts) => {
+                vec![
+                    format!("{} contracts", contracts.len()),
+                    String::from("—"),
+                    String::from("—"),
+                    String::from("—"),
+                    String::from("—"),
+                    String::from("—"),
+                ]
+            }
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

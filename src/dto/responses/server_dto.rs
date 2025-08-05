@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::helpers::table_helpers::TableRow;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ServerStatusDTO {
     pub status:      String,
@@ -14,6 +16,21 @@ pub struct ServerStatusDTO {
     pub server_resets: ServerResetsDTO,
     pub announcements: Vec<AnnouncementDTO>,
     pub links:         Vec<LinkDTO>,
+}
+
+impl TableRow for ServerStatusDTO {
+    fn headers() -> Vec<&'static str> {
+        vec!["Status", "Version", "Reset Date", "Description"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        vec![
+            self.status.clone(),
+            self.version.clone(),
+            self.reset_date.clone(),
+            self.description.clone()
+        ]
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
