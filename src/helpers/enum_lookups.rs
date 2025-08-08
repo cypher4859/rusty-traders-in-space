@@ -1,7 +1,7 @@
 use std::{fmt::DebugStruct, str::FromStr};
 use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
-use strum_macros::{Display, EnumIter, EnumString};
+use strum_macros::{AsRefStr, Display, EnumIter, EnumString};
 
 
 
@@ -34,7 +34,7 @@ pub enum TraitSymbol {
     Bureaucratic
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, Display, AsRefStr)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum FactionSymbol {
     Cosmic,
@@ -108,6 +108,7 @@ impl FromStr for TraitSymbol {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
 pub enum FrameSymbol {
+    #[strum(serialize = "FRAME_PROBE")]
     Probe,
     Drone,
     Interceptor,

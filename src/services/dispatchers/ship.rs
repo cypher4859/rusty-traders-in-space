@@ -75,7 +75,7 @@ impl ShipService {
         }
     }
 
-    pub async fn show_ships(&self, agent_id: &Option<String>) -> anyhow::Result<Vec<Ship>> {
+    pub async fn show_ships(&self, agent_id: &Option<String>) -> anyhow::Result<()> {
         // Get the number of ships and the ship names
         let agent: Agent = self.agent_svc.get_agent(agent_id).await?;
         let agent_symbol = agent.symbol;
@@ -86,7 +86,8 @@ impl ShipService {
             let mut ship = self._get_ship(&ship_name).await?;
             ships.push(ship.clone());
         }
-        Ok(ships)
+        self.st.display_results_as_table(ships);
+        Ok(())
     }
 
     pub async fn get_ship(&self, ship_name: &String) -> anyhow::Result<Ship> {

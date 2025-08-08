@@ -232,7 +232,7 @@ impl SpaceTradersService {
     /// *If the vector is empty it prints a short notice instead of an empty table.*
     pub fn display_results_as_table<T>(&self, items: Vec<T>)
     where
-        T: Serialize + Debug + TableRow,
+        T: Debug + TableRow,
     {
         if items.is_empty() {
             println!("No data to show!");

@@ -552,7 +552,9 @@ pub mod definitions {
             ShowCmd::Agents { name } => {agent_svc.list_agents(name).await?;},
             ShowCmd::CurrentAgent => {agent_svc.find_agent(&None, &true).await?;},
             ShowCmd::Factions { name } => {faction_svc.show_factions(name).await?;},
-            ShowCmd::Ships { agent } => {ship_svc.show_ships(agent).await?;},
+            ShowCmd::Ships { agent } => {
+                ship_svc.show_ships(agent).await?;
+            },
             ShowCmd::Items => { 
                 spacetraders_svc.display_enums::<InventoryItemSymbol>(); 
             },

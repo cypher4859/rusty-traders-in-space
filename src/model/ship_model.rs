@@ -1,10 +1,11 @@
 use std::{fmt::DebugStruct, str::FromStr};
 use serde::{Deserialize, Serialize};
-use strum_macros::{EnumIter, EnumString};
+use strum_macros::{AsRefStr, Display, EnumIter, EnumString};
 use crate::helpers::enum_lookups::FactionSymbol;
 use crate::dto::responses::inventory_dto::{InventoryItemDTO};
 use crate::dto::responses::fleet_dto::{CrewDTO, EngineDTO, FrameDTO, ReactorDTO, RegistrationDTO, ShipDTO, ModuleDTO, ModuleRequirementsDTO, MountDTO, MountRequirementsDTO, CooldownDTO, FuelDTO, CargoDTO};
 use crate::dto::responses::nav_dto::{NavRouteLocationDTO};
+use crate::helpers::table_helpers::TableRow;
 use anyhow::{Result, ensure};
 use std::convert::TryFrom;
 
@@ -101,6 +102,31 @@ impl TryFrom<ShipDTO> for Ship {
     }
 }
 
+impl TableRow for Ship {
+    fn headers() -> Vec<&'static str> {
+        vec!["Names", "Faction", "Location", "Status", "Mode", "Role", "Crew", "Fuel", "Cargo", "CoolDown"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let cargo_amount = match self.cargo.units {
+            Some(u) => { u.to_string()},
+            None => String::from("0")
+        };
+        vec![
+            self.symbol.clone(),
+            self.registration.faction_symbol.to_string(),
+            self.nav.waypoint_symbol.clone(),
+            self.nav.status.to_string(),
+            self.nav.flight_mode.to_string(),
+            self.registration.role.clone(),
+            format!("{}/{}", self.crew.current.to_string(), self.crew.capacity.to_string()),
+            format!("{}/{}", self.fuel.current.to_string(), self.fuel.capacity.to_string()),
+            cargo_amount,
+            self.cooldown.remaining_seconds.to_string()
+        ]
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Registration {
     pub name: String,
@@ -145,7 +171,9 @@ impl TryFrom<RegistrationDTO> for Registration {
     Debug, Clone, Copy, PartialEq, Eq, Hash,
     Serialize, Deserialize,           // JSON ↔ enum
     EnumIter,                         // ShipStatus::iter()
-    EnumString                        // "IN_TRANSIT".parse::<ShipStatus>()
+    EnumString,                        // "IN_TRANSIT".parse::<ShipStatus>(),
+    AsRefStr,
+    Display
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
@@ -159,7 +187,9 @@ pub enum ShipStatus {
     Debug, Clone, Copy, PartialEq, Eq, Hash,
     Serialize, Deserialize,           // JSON ↔ enum
     EnumIter,                         // ShipStatus::iter()
-    EnumString                        // "IN_TRANSIT".parse::<ShipStatus>()
+    EnumString,                        // "IN_TRANSIT".parse::<ShipStatus>()
+    AsRefStr,
+    Display
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
