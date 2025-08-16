@@ -337,25 +337,27 @@ impl SpaceTradersService {
         endpoint: &str,
         extra: Option<HeaderMap>,
         display_result: bool
-    ) -> anyhow::Result<()>
+    ) -> anyhow::Result<Option<Vec<D>>>
     where
-        D: DeserializeOwned + Serialize + Debug + TableRow,
+        D: DeserializeOwned + Serialize + Debug + TableRow + Clone,
     {
         let result = self
             .send_request_with_paging::<D, ()>(endpoint, SupportedHttpMethods::Get, None, extra)
-            .await;
+            .await?;
+
+        // let returned_result = result.iter().clone();
 
         if (display_result) {
-            match result? {
+            match &result {
                 Some(res) => {
-                    self.display_results_as_table(res);
+                    self.display_results_as_table(res.clone());
                 },
                 None => {
                     bail!("Something hardcore messed up with get_with_heders_and_paging")
                 }
             }
         }
-        Ok(())
+        Ok(result)
     }
 
     pub fn get_agent_headers(&self, agent_token: &String) -> anyhow::Result<HeaderMap> {

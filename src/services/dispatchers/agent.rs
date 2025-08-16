@@ -225,10 +225,10 @@ impl AgentService {
         
     }
 
-    async fn _get_agents_from_api(&self) -> anyhow::Result<()> {
+    async fn _get_agents_from_api(&self) -> anyhow::Result<Option<Vec<AgentDTO>>> {
         let endpoint: String = String::from("agents");
-        self.st.get_with_headers_and_paging::<AgentDTO>(&endpoint, None, true).await?;
-        Ok(())
+        let result = self.st.get_with_headers_and_paging::<AgentDTO>(&endpoint, None, true).await?;
+        Ok(result)
     }
 
     pub async fn _find_agent_by_token(&self, agent_token: &String) -> anyhow::Result<()> {
@@ -251,7 +251,7 @@ impl AgentService {
         match result {
             Some(some_result) => match some_result.data {
                 AgentDataDTO::Single(dto) => {
-                    println!("Got a single dto, it's doing the thing");
+                    println!("Identified agent {}", dto.symbol);
                     Ok(dto.try_into()?)
                 },
                 AgentDataDTO::List(_) => bail!("Received a list for _find_agent_by_id, should've been a single")
@@ -265,7 +265,8 @@ impl AgentService {
     }
 
     async fn _list_all_agents(&self) -> anyhow::Result<()> {
-        self._get_agents_from_api().await
+        self._get_agents_from_api().await;
+        Ok(())
     }
 
     fn _list_all_agents_from_db(&self, include_archived_entries: bool) -> anyhow::Result<()> {

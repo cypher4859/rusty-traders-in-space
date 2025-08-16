@@ -1,10 +1,12 @@
 use std::{fmt::DebugStruct, str::FromStr};
+use anyhow::Context;
 use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
 use strum_macros::{EnumIter};
 
 use crate::helpers::enum_lookups::FactionSymbol;
 use crate::helpers::enum_lookups::TraitSymbol;
+use crate::helpers::table_helpers::TableRow;
 use crate::FactionDTO;
 use crate::TraitDTO;
 
@@ -47,6 +49,22 @@ impl Faction {
     }
 }
 
+impl TableRow for Faction {
+    fn headers() -> Vec<&'static str> {
+        vec!["Name", "Keyword", "HQ", "Recruiting", "Description"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        vec![
+            self.name.trim().to_string(),
+            self.symbol.to_string(),
+            self.headquarters.trim().to_string(),
+            self.is_recruiting.to_string(),
+            self.description.trim().to_string()
+        ]
+    }
+}
+
 impl TryFrom<FactionDTO> for Faction {
     type Error = anyhow::Error;
 
@@ -60,11 +78,12 @@ impl TryFrom<FactionDTO> for Faction {
 
         ensure!(!dto.name.is_empty(), "name cannot be empty");
 
-        let traits = dto
-            .traits
+        // FIXME: This is broken, need to fix the `unwrap` shit
+        let traits: Vec<Trait> = dto.traits
             .into_iter()
             .map(Trait::try_from)
-            .collect::<Result<Vec<_>>>()?;
+            .collect::<Result<Vec<_>>>()
+            .with_context(|| format!("Failed to get Traits"))?;
 
         Faction::new(
             symbol,
@@ -83,7 +102,65 @@ impl TryFrom<TraitDTO> for Trait {
 
     fn try_from(src: TraitDTO) -> Result<Self, anyhow::Error> {
         let symbol = match src.symbol.as_str() {
-            "BUREAUCRATIC" => TraitSymbol::Bureaucratic,
+            "BUREAUCRATIC"            => TraitSymbol::Bureaucratic,
+            "SECRETIVE"               => TraitSymbol::Secretive,
+            "CAPITALISTIC"            => TraitSymbol::Capitalistic,
+            "INDUSTRIOUS"             => TraitSymbol::Industrious,
+            "PEACEFUL"                => TraitSymbol::Peaceful,
+            "DISTRUSTFUL"             => TraitSymbol::Distrustful,
+            "WELCOMING"               => TraitSymbol::Welcoming,
+            "SMUGGLERS"               => TraitSymbol::Smugglers,
+            "SCAVENGERS"              => TraitSymbol::Scavengers,
+            "REBELLIOUS"              => TraitSymbol::Rebellious,
+            "EXILES"                  => TraitSymbol::Exiles,
+            "PIRATES"                 => TraitSymbol::Pirates,
+            "RAIDERS"                 => TraitSymbol::Raiders,
+            "CLAN"                    => TraitSymbol::Clan,
+            "GUILD"                   => TraitSymbol::Guild,
+            "DOMINION"                => TraitSymbol::Dominion,
+            "FRINGE"                  => TraitSymbol::Fringe,
+            "FORSAKEN"                => TraitSymbol::Forsaken,
+            "ISOLATED"                => TraitSymbol::Isolated,
+            "LOCALIZED"               => TraitSymbol::Localized,
+            "ESTABLISHED"             => TraitSymbol::Established,
+            "NOTABLE"                 => TraitSymbol::Notable,
+            "DOMINANT"                => TraitSymbol::Dominant,
+            "INESCAPABLE"             => TraitSymbol::Inescapable,
+            "INNOVATIVE"              => TraitSymbol::Innovative,
+            "BOLD"                    => TraitSymbol::Bold,
+            "VISIONARY"               => TraitSymbol::Visionary,
+            "CURIOUS"                 => TraitSymbol::Curious,
+            "DARING"                  => TraitSymbol::Daring,
+            "EXPLORATORY"             => TraitSymbol::Exploratory,
+            "RESOURCEFUL"             => TraitSymbol::Resourceful,
+            "FLEXIBLE"                => TraitSymbol::Flexible,
+            "COOPERATIVE"             => TraitSymbol::Cooperative,
+            "UNITED"                  => TraitSymbol::United,
+            "STRATEGIC"               => TraitSymbol::Strategic,
+            "INTELLIGENT"             => TraitSymbol::Intelligent,
+            "RESEARCH_FOCUSED"        => TraitSymbol::ResearchFocused,
+            "COLLABORATIVE"           => TraitSymbol::Collaborative,
+            "PROGRESSIVE"             => TraitSymbol::Progressive,
+            "MILITARISTIC"            => TraitSymbol::Militaristic,
+            "TECHNOLOGICALLY_ADVANCED"=> TraitSymbol::TechnologicallyAdvanced,
+            "AGGRESSIVE"              => TraitSymbol::Aggressive,
+            "IMPERIALISTIC"           => TraitSymbol::Imperialistic,
+            "TREASURE_HUNTERS"        => TraitSymbol::TreasureHunters,
+            "DEXTEROUS"               => TraitSymbol::Dexterous,
+            "UNPREDICTABLE"           => TraitSymbol::Unpredictable,
+            "BRUTAL"                  => TraitSymbol::Brutal,
+            "FLEETING"                => TraitSymbol::Fleeting,
+            "ADAPTABLE"               => TraitSymbol::Adaptable,
+            "SELF_SUFFICIENT"         => TraitSymbol::SelfSufficient,
+            "DEFENSIVE"               => TraitSymbol::Defensive,
+            "PROUD"                   => TraitSymbol::Proud,
+            "DIVERSE"                 => TraitSymbol::Diverse,
+            "INDEPENDENT"             => TraitSymbol::Independent,
+            "SELF_INTERESTED"         => TraitSymbol::SelfInterested,
+            "FRAGMENTED"              => TraitSymbol::Fragmented,
+            "COMMERCIAL"              => TraitSymbol::Commercial,
+            "FREE_MARKETS"            => TraitSymbol::FreeMarkets,
+            "ENTREPRENEURIAL"         => TraitSymbol::Entrepreneurial,
             other => return Err(anyhow!("unknown trait symbol {other}")),
         };
 

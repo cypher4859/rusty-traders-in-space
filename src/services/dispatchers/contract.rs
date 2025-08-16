@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use anyhow::bail;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use crate::config::Config;
 use crate::dto::requests::contract_request_dto::RequestDeliverDTO;
@@ -45,12 +46,16 @@ impl ContractService {
         Ok(())
     }
 
-    pub async fn show_current_contracts(&self, agent_symbol: &String) -> anyhow::Result<()> {
+    pub async fn show_current_contracts(&self, token: &Option<String>) -> anyhow::Result<()> {
         println!("Handling showing current contracts");
-        let test_agent_symbol = String::from("Test");
-        let agent_token: String = self.agent_svc.get_token_by_agent_symbol(&test_agent_symbol).await?;
-        self._list_contracts_owned_by_agent(&agent_token).await?;
-        Ok(())
+        match (token) {
+            Some(t) => {
+                self._list_contracts_owned_by_agent(&t).await
+            },
+            None => {
+                bail!("Couldn't get token for the currently active agent!");
+            }
+        }
     }
 
     pub async fn find_contract(&self, contract_id: &String) ->anyhow::Result<()> {
@@ -72,8 +77,16 @@ impl ContractService {
             AUTHORIZATION,
             HeaderValue::from_str(&format!("Bearer {}", agent_token))?
         );
-        self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr), true).await?;
-        Ok(())
+        let result = self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr), false).await?;
+        match (result) {
+            Some(contract) => {
+                self.st.display_results_as_table(vec![contract]);
+                Ok(())
+            },
+            None => {
+                bail!("No contracts listed!")
+            }
+        }
     }
 
     async fn _find_contract_by_id(&self, contract_id: &String, agent_token: &String) -> anyhow::Result<()> {

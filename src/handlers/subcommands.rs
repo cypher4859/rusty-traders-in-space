@@ -45,8 +45,8 @@ pub mod declarations {
         },
         /// Show contracts of an agent
         Contracts {
-            #[arg(short, long)]
-            agent: String
+            #[arg(short, long, required = false)]
+            agent: Option<String>
         },
         /// Show agents
         Agents {
@@ -589,7 +589,7 @@ pub mod definitions {
             ContractCmd::Negotiate { contract_id } => contract_svc.negotiate_contract(contract_id).await?,
             ContractCmd::Current => {
                 let agent_symbol = agent_svc.get_current_selected_agent_token().await?;
-                contract_svc.show_current_contracts(&agent_symbol).await?
+                contract_svc.show_current_contracts(&Some(agent_symbol)).await?
             },
             ContractCmd::Find { contract_id} => contract_svc.find_contract(contract_id).await?,
             ContractCmd::Fulfill { contract_id } => contract_svc.fulfill_contract(contract_id).await?,
@@ -614,19 +614,20 @@ pub mod definitions {
 
     pub async fn navigate(ship_svc: &ShipService, target: &NavigateCmd) -> anyhow::Result<()> {
         match target {
-            NavigateCmd::Orbit { ship } => {ship_svc.navigate_orbit(ship).await;Ok(())},
-            NavigateCmd::Dock { ship } => {ship_svc.dock_at_station(ship).await;Ok(())},
-            NavigateCmd::Status { ship } => {ship_svc.get_navigation_status(ship).await;Ok(())},
-            NavigateCmd::To { ship, waypoint } => {ship_svc.navigate_to(ship, waypoint).await;Ok(())},
-            NavigateCmd::SetFlightMode { ship } => {ship_svc.set_flight_mode(ship).await;Ok(())},
-            NavigateCmd::Warp { ship, waypoint } => {ship_svc.warp_ship(ship, waypoint).await;Ok(())},
-            NavigateCmd::Jump { ship, waypoint } => {ship_svc.jump_to_waypoint(ship, waypoint).await;Ok(())},
+            NavigateCmd::Orbit { ship } => ship_svc.navigate_orbit(ship).await.map(|_| ()),
+            NavigateCmd::Dock { ship } => ship_svc.dock_at_station(ship).await.map(|_| ()),
+            NavigateCmd::Status { ship } => ship_svc.get_navigation_status(ship).await.map(|_| ()),
+            NavigateCmd::To { ship, waypoint } => ship_svc.navigate_to(ship, waypoint).await.map(|_| ()),
+            NavigateCmd::SetFlightMode { ship } => ship_svc.set_flight_mode(ship).await.map(|_| ()),
+            NavigateCmd::Warp { ship, waypoint } => ship_svc.warp_ship(ship, waypoint).await.map(|_| ()),
+            NavigateCmd::Jump { ship, waypoint } => ship_svc.jump_to_waypoint(ship, waypoint).await.map(|_| ()),
         }
     }
 
     pub async fn faction_action(faction_svc: &FactionService, target: &FactionCmd) -> anyhow::Result<()> {
         match target {
             FactionCmd::ShowAll => {
+                // This should also show the keyword for the faction we can use for other commands
                 faction_svc.show_all_factions().await;
             },
             FactionCmd::Search { faction } => { 
@@ -638,154 +639,79 @@ pub mod definitions {
 
     pub async fn market_action(market_svc: &MarketService, target: &MarketCmd) -> anyhow::Result<()> {
         match target {
-            MarketCmd::Details { waypoint, ship  } => {market_svc.get_market(waypoint, ship).await;Ok(())}
+            MarketCmd::Details { waypoint, ship  } => market_svc.get_market(waypoint, ship).await.map(|_| ())
         }
     }
 
     pub async fn system_actions(system_svc: &SystemService, target: &SystemCmd) ->anyhow::Result<()> {
         match target {
-            SystemCmd::List => {system_svc.list_systems().await; Ok(())},
-            SystemCmd::Details { system } => {system_svc.get_system(system).await; Ok(())},
-            SystemCmd::Waypoints { system, } => {system_svc.list_waypoints_by_system(system).await;Ok(())},
-            SystemCmd::Waypoint { waypoint } => {system_svc.get_waypoint(waypoint).await;Ok(())}
+            SystemCmd::List => system_svc.list_systems().await.map(|_| ()),
+            SystemCmd::Details { system } => system_svc.get_system(system).await.map(|_| ()),
+            SystemCmd::Waypoints { system, } => system_svc.list_waypoints_by_system(system).await.map(|_| ()),
+            SystemCmd::Waypoint { waypoint } => system_svc.get_waypoint(waypoint).await.map(|_| ())
         }
     }
 
     pub async fn waypoint_actions(system_svc: &SystemService, target: &WaypointCmd) -> anyhow::Result<()> {
         match target {
-            WaypointCmd::List { system } => {system_svc.list_waypoints_by_system(system).await;Ok(())},
-            WaypointCmd::Details { waypoint } => {system_svc.get_waypoint(waypoint).await;Ok(())},
-            WaypointCmd::Jumpgate { waypoint } => {system_svc.get_jumpgate(waypoint).await;Ok(())},
-            WaypointCmd::Market { waypoint , ship } => {system_svc.get_market(waypoint, ship).await;Ok(())},
-            WaypointCmd::Construction { waypoint } => {system_svc.get_construction_site(waypoint).await;Ok(())}
+            WaypointCmd::List { system } => system_svc.list_waypoints_by_system(system).await.map(|_| ()),
+            WaypointCmd::Details { waypoint } => system_svc.get_waypoint(waypoint).await.map(|_| ()),
+            WaypointCmd::Jumpgate { waypoint } => system_svc.get_jumpgate(waypoint).await.map(|_| ()),
+            WaypointCmd::Market { waypoint , ship } => system_svc.get_market(waypoint, ship).await.map(|_| ()),
+            WaypointCmd::Construction { waypoint } => system_svc.get_construction_site(waypoint).await.map(|_| ())
         }
     }
 
     // TODO: It would be useful to "activate" a specific ship ot save from having to type the name out all the time
     pub async fn ship_actions(ship_svc: &ShipService, target: &ShipCmd) -> anyhow::Result<()> {
         match target {
-            ShipCmd::Status { ship } => {
-                ship_svc.get_ship(ship).await;
-                Ok(())
-            },
+            ShipCmd::Status { ship } => ship_svc.get_ship(ship).await.map(|_| ()),
             ShipCmd::Cargo(cmd) => match cmd {
-                        CargoCmd::List { ship } => ship_svc.list_cargo(ship).await,
-                        CargoCmd::Purchase { ship, item, units} => ship_svc.purchase_cargo(ship, item, *units).await,
-                        CargoCmd::Sell { ship, item, units }  => ship_svc.sell_cargo(ship, item, *units).await,
-                        CargoCmd::Transfer { ship, item, units } => ship_svc.transfer_cargo(ship, item, *units).await,
-                        CargoCmd::Jettison { ship, item, units } => ship_svc.jettison_cargo(ship, item, *units).await
-                    },
-            ShipCmd::Chart { ship } => {
-                ship_svc.create_chart(ship).await;
-                Ok(())
+                CargoCmd::List { ship } => ship_svc.list_cargo(ship).await.map(|_| ()),
+                CargoCmd::Purchase { ship, item, units} => ship_svc.purchase_cargo(ship, item, *units).await.map(|_| ()),
+                CargoCmd::Sell { ship, item, units }  => ship_svc.sell_cargo(ship, item, *units).await.map(|_| ()),
+                CargoCmd::Transfer { ship, item, units } => ship_svc.transfer_cargo(ship, item, *units).await.map(|_| ()),
+                CargoCmd::Jettison { ship, item, units } => ship_svc.jettison_cargo(ship, item, *units).await.map(|_| ())
             },
+            ShipCmd::Chart { ship } => ship_svc.create_chart(ship).await.map(|_| ()),
             ShipCmd::Reactor(reactor_cmd) => match reactor_cmd {
-                ReactorCmd::Status { ship } => {
-                    ship_svc.get_reactor_status(ship).await;
-                    Ok(())
-                },
+                ReactorCmd::Status { ship } => ship_svc.get_reactor_status(ship).await.map(|_| ()),
             },
             // FIXME: This appears broken. Ran a navigate status and it failed silently. Ran a navigate to and it also failed silently
             // Need tests bad
             ShipCmd::Navigate(navigate_cmd) => match navigate_cmd {
-                NavigateCmd::Orbit { ship } => {
-                    ship_svc.navigate_orbit(ship).await;
-                    Ok(())
-                },
-                NavigateCmd::Dock { ship } => {
-                    ship_svc.dock_at_station(ship).await;
-                    Ok(())
-                },
-                NavigateCmd::Status { ship } => {
-                    ship_svc.get_navigation_status(ship).await;
-                    Ok(())
-                },
-                NavigateCmd::To { ship, waypoint } => {
-                    ship_svc.navigate_to(ship, waypoint).await;
-                    Ok(())
-                },
-                NavigateCmd::SetFlightMode { ship } => {
-                    ship_svc.set_flight_mode(ship).await;
-                    Ok(())
-                },
-                NavigateCmd::Warp { ship, waypoint } => {
-                    ship_svc.warp_ship(ship, waypoint).await;
-                    Ok(())
-                },
-                NavigateCmd::Jump { ship, waypoint } => {
-                    ship_svc.jump_to_waypoint(ship, waypoint).await;
-                    Ok(())
-                },
+                NavigateCmd::Orbit { ship } => ship_svc.navigate_orbit(ship).await.map(|_| ()),
+                NavigateCmd::Dock { ship } => ship_svc.dock_at_station(ship).await.map(|_| ()),
+                NavigateCmd::Status { ship } => ship_svc.get_navigation_status(ship).await.map(|_| ()),
+                NavigateCmd::To { ship, waypoint } => ship_svc.navigate_to(ship, waypoint).await.map(|_| ()),
+                NavigateCmd::SetFlightMode { ship } => ship_svc.set_flight_mode(ship).await.map(|_| ()),
+                NavigateCmd::Warp { ship, waypoint } => ship_svc.warp_ship(ship, waypoint).await.map(|_| ()),
+                NavigateCmd::Jump { ship, waypoint } => ship_svc.jump_to_waypoint(ship, waypoint).await.map(|_| ())
             },
             ShipCmd::Scan(scan_cmd) => match scan_cmd {
-                ScanCmd::Market { ship, waypoint } => {
-                    ship_svc.scan_market(ship, waypoint).await;
-                    Ok(())
-                },
-                ScanCmd::Systems { ship, system } => {
-                    ship_svc.scan_systems(ship, system).await;
-                    Ok(())
-                },
-                ScanCmd::Waypoints {ship, waypoint } => {
-                    ship_svc.scan_waypoints(ship, waypoint).await;
-                    Ok(())
-                },
-                ScanCmd::Ships {ship, target } => {
-                    ship_svc.scan_ships(ship, target).await;
-                    Ok(())
-                },
+                ScanCmd::Market { ship, waypoint } => ship_svc.scan_market(ship, waypoint).await.map(|_| ()),
+                ScanCmd::Systems { ship, system } => ship_svc.scan_systems(ship, system).await.map(|_| ()),
+                ScanCmd::Waypoints {ship, waypoint } => ship_svc.scan_waypoints(ship, waypoint).await.map(|_| ()),
+                ScanCmd::Ships {ship, target } => ship_svc.scan_ships(ship, target).await.map(|_| ()),
             },
-            ShipCmd::Refuel { ship, from_cargo, units } => {
-                ship_svc.refuel_ship(ship, from_cargo, units).await;
-                Ok(())
-            },
+            ShipCmd::Refuel { ship, from_cargo, units } => ship_svc.refuel_ship(ship, from_cargo, units).await.map(|_| ()),
             ShipCmd::Mounts(mount_cmd) => match mount_cmd {
-                MountCmd::List { ship } => {
-                    ship_svc.list_mounts(ship).await;
-                    Ok(())
-                },
-                MountCmd::Install { ship, item } => {
-                    ship_svc.install_mount(ship, item).await;
-                    Ok(())
-                },
-                MountCmd::Remove { ship, item } => {
-                    ship_svc.remove_mount(ship, item).await;
-                    Ok(())
-                },
+                MountCmd::List { ship } => ship_svc.list_mounts(ship).await.map(|_| ()),
+                MountCmd::Install { ship, item } => ship_svc.install_mount(ship, item).await.map(|_| ()),
+                MountCmd::Remove { ship, item } => ship_svc.remove_mount(ship, item).await.map(|_| ()),
             },
             ShipCmd::Modules(module_cmd) => match module_cmd {
-                ModuleCmd::List { ship} => {
-                    ship_svc.list_modules_by_ship(ship).await;
-                    Ok(())
-                },
-                ModuleCmd::Install { ship, item } => {
-                    ship_svc.install_module_to_ship(ship, item).await;
-                    Ok(())
-                },
-                ModuleCmd::Remove { ship, item } => {
-                    ship_svc.remove_module_from_ship(ship, item).await;
-                    Ok(())
-                },
+                ModuleCmd::List { ship} => ship_svc.list_modules_by_ship(ship).await.map(|_| ()),
+                ModuleCmd::Install { ship, item } => ship_svc.install_module_to_ship(ship, item).await.map(|_| ()),
+                ModuleCmd::Remove { ship, item } => ship_svc.remove_module_from_ship(ship, item).await.map(|_| ()),
             },
             ShipCmd::Scrap(scrap_cmd) => match scrap_cmd {
-                ScrapCmd::Status { ship} => {
-                    ship_svc.get_scrap_ship_status(ship).await;
-                    Ok(())
-                },
-                ScrapCmd::Initiate { ship } => {
-                    ship_svc.initiate_scrap_ship(ship).await;
-                    Ok(())
-                },
+                ScrapCmd::Status { ship} => ship_svc.get_scrap_ship_status(ship).await.map(|_| ()),
+                ScrapCmd::Initiate { ship } => ship_svc.initiate_scrap_ship(ship).await.map(|_| ()),
             },
             ShipCmd::Repair(repair_cmd) => match repair_cmd {
-                RepairCmd::Status { ship } => {
-                    ship_svc.get_repair_status(ship).await;
-                    Ok(())
-                },
-                RepairCmd::Initiate { ship} => {
-                    ship_svc.initiate_repair(ship).await;
-                    Ok(())
-                },
+                RepairCmd::Status { ship } => ship_svc.get_repair_status(ship).await.map(|_| ()),
+                RepairCmd::Initiate { ship} => ship_svc.initiate_repair(ship).await.map(|_| ()),
             },
             ShipCmd::Resources(material_cmd) => match material_cmd {
                 ResourcesCmd::Refine => todo!(),

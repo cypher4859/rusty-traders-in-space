@@ -27,26 +27,30 @@ impl TableRow for ContractEnvelopeDTO {
         vec!["ID", "Type", "Faction", "Accepted", "Expiration"]
     }
 
-    fn to_row(&self) -> Vec<String> {
+    fn to_rows(&self) -> Vec<Vec<String>> {
+        let mut rows: Vec<Vec<String>> = Vec::new();
         match &self.data {
             ContractDataDTO::Single(contract) => {
-                vec![
+                rows.extend(vec![vec![
                     contract.id.clone(),
                     contract.contract_type.clone(),
                     contract.faction_symbol.clone(),
                     contract.accepted.to_string(),
                     contract.expiration.clone(),
-                ]
+                ]]);
+                rows
             },
             ContractDataDTO::List(contracts) => {
-                vec![
-                    format!("{} contracts", contracts.len()),
-                    String::from("—"),
-                    String::from("—"),
-                    String::from("—"),
-                    String::from("—"),
-                    String::from("—"),
-                ]
+                rows.extend(contracts.iter().map(|contract| {
+                    vec![
+                        contract.id.clone(),
+                        contract.contract_type.clone(),
+                        contract.faction_symbol.clone(),
+                        contract.accepted.to_string(),
+                        contract.expiration.clone(),
+                    ]
+                }));
+                rows
             }
         }
     }
