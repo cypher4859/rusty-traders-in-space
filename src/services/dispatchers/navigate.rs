@@ -92,7 +92,7 @@ impl NavigateService {
     async fn _get_navigation_status(&self, agent_token: &String, ship_symbol: &String) -> anyhow::Result<NavigateStatusDataEnvelopeDTO> {
         let endpoint: String = format!("my/ships/{}/nav", ship_symbol);
         let headers = self.st.get_agent_headers(agent_token)?;
-        let result = self.st.get_with_headers::<NavigateStatusDataEnvelopeDTO>(&endpoint, Some(headers), true).await?;
+        let result = self.st.get_with_headers::<NavigateStatusDataEnvelopeDTO>(&endpoint, Some(headers), false).await?;
         match result {
             Some(res) => {
                 Ok(res)

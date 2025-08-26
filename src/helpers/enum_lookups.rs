@@ -1,11 +1,20 @@
-use std::{fmt::DebugStruct, str::FromStr};
+use std::{fmt::DebugStruct, str::FromStr, vec};
 use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, Display, EnumIter, EnumString};
+use crate::helpers::table_helpers::TableRow;
 
 
+// pub trait TableRow {
+//     fn headers() -> Vec<&'static str>;
+//     fn to_row(&self) -> Vec<String>;
+//     fn to_rows(&self) -> Vec<Vec<String>> {
+//         vec![self.to_row()]
+//     }
+// }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, Display)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EngineSymbol {
     EngineImpulseDriveI,
@@ -28,7 +37,31 @@ impl FromStr for EngineSymbol {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
+impl TableRow for EngineSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, Display)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TraitSymbol {
     Bureaucratic,
@@ -92,6 +125,30 @@ pub enum TraitSymbol {
     Entrepreneurial
 }
 
+impl TableRow for TraitSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, Display, AsRefStr)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum FactionSymbol {
@@ -146,6 +203,31 @@ impl FromStr for FactionSymbol {
     }
 }
 
+impl TableRow for FactionSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
+
 impl FromStr for TraitSymbol {
     type Err = anyhow::Error;
 
@@ -160,8 +242,9 @@ impl FromStr for TraitSymbol {
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash,
     Serialize, Deserialize,
-    EnumIter,            // → FrameSymbol::iter()
-    EnumString           // → FromStr + parse::<FrameSymbol>()
+    EnumIter,
+    EnumString,
+    Display
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
@@ -186,12 +269,37 @@ pub enum FrameSymbol {
     BulkFreighter,
 }
 
+impl TableRow for FrameSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash,
     Serialize, Deserialize,
     EnumIter,
     EnumString,                    // <── derives `FromStr`
+    Display
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
@@ -350,7 +458,31 @@ pub enum InventoryItemSymbol {
     ShipBulkFreighter,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
+impl TableRow for InventoryItemSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, Display)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ModuleSymbol {
     MineralProcessorI,
@@ -405,7 +537,31 @@ impl FromStr for ModuleSymbol {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter)]
+impl TableRow for ModuleSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, Display)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MountSymbol {
     GasSiphonI,
@@ -423,6 +579,30 @@ pub enum MountSymbol {
     LaserCannonI,
     MissileLauncherI,
     TurretI,
+}
+
+impl TableRow for MountSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
 }
 
 // impl fmt::Display for MountSymbol {
@@ -458,9 +638,10 @@ impl FromStr for MountSymbol {
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash,
-    Serialize, Deserialize,           // JSON ↔ enum
-    EnumIter,                         // ShipStatus::iter()
-    EnumString                        // "IN_TRANSIT".parse::<ShipStatus>()
+    Serialize, Deserialize,
+    EnumIter,
+    EnumString,
+    Display
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
@@ -481,11 +662,36 @@ pub enum WaypointType {
     FuelStation
 }
 
+impl TableRow for WaypointType {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash,
     Serialize, Deserialize,
-    EnumIter,            // ReactorSymbol::iter()
-    EnumString           // "REACTOR_SOLAR_I".parse::<ReactorSymbol>()
+    EnumIter,
+    EnumString,
+    Display
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE", ascii_case_insensitive)]
@@ -495,6 +701,30 @@ pub enum ReactorSymbol {
     ReactorFissionI,      // "REACTOR_FISSION_I"
     ReactorChemicalI,     // "REACTOR_CHEMICAL_I"
     ReactorAntimatterI,   // "REACTOR_ANTIMATTER_I"
+}
+
+impl TableRow for ReactorSymbol {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
 }
 
 #[derive(
@@ -510,4 +740,28 @@ pub enum NavStatus {
     InTransit,
     InOrbit,
     Docked
+}
+
+impl TableRow for NavStatus {
+    fn headers() -> Vec<&'static str> {
+        vec!["Symbol", "Pretty"]
+    }
+
+    fn to_row(&self) -> Vec<String> {
+        let sym = self.to_string();
+
+        let pretty = sym
+            .split("_")
+            .map(|s| {
+                let mut c = s.chars();
+                match c.next() {
+                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str().to_lowercase().as_str(),
+                    None => String::new()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+    
+        vec![sym, pretty]
+    }
 }

@@ -2,11 +2,12 @@ use comfy_table::{Row, Table};
 use anyhow::{bail, Context, Result};
 use owo_colors::OwoColorize;
 use serde::Deserialize;
-use strum::IntoEnumIterator;
+use strum::{IntoEnumIterator};
+use strum_macros::{Display};
 use tungstenite::http::request;
 use std::any::type_name;
 // cargo add owo-colors
-use std::fmt::Debug;
+use std::fmt::{Debug};
 use std::fs;
 use std::path::Path;
 use reqwest::{Client, StatusCode};
@@ -52,6 +53,15 @@ impl SpaceTradersService {
             token: cfg.api_token.clone(),
             db_connection: db_connection?
         })
+    }
+
+    pub fn new_injected(
+        cfg: std::sync::Arc<Config>,
+        http: reqwest::Client,
+        base: String,
+        db_connection: rusqlite::Connection,
+    ) -> Self {
+        Self { cfg, http, base, token: String::new(), db_connection }
     }
 
     fn init_db(path: &str) -> Result<Connection> {
@@ -205,11 +215,17 @@ impl SpaceTradersService {
 
     pub fn display_enums<T>(&self)
     where
-        T: IntoEnumIterator + Debug,
+        T: IntoEnumIterator + Debug + Serialize + TableRow,
     {
-        for v in T::iter() {
-            println!("{v:?}");
-        }
+        // for v in T::iter() {
+        //     println!("{v:?}");
+        // }
+        let all: Vec<T> = T::iter().collect();
+        // match self.cfg.output_mode {
+        //     OutputMode::Json  => self._display_api_result_in_json("Name", &Ok(Some(all))),
+        //     OutputMode::Table => self._display_api_result_in_table("Name", &Ok(Some(all))),
+        // }
+        self.display_api_result("Name", &Ok(Some(all)));
     }
 
     pub fn display_api_result<T>(&self, label: &str, outcome: &anyhow::Result<Option<T>>)

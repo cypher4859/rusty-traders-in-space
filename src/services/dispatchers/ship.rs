@@ -1,6 +1,7 @@
 use std::alloc::System;
 use std::sync::Arc;
 use anyhow::bail;
+use anyhow::Context;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use crate::config::Config;
 use crate::dto::requests::fuel_request_dto::RequestRefuelShipDTO;
@@ -126,8 +127,10 @@ impl ShipService {
         self._dock_at_station(ship_symbol).await
     }
 
-    pub async fn get_navigation_status(&self, ship_symbol: &String) -> anyhow::Result<NavigateStatusDataEnvelopeDTO> {
-        self._get_navigation_status(ship_symbol).await
+    pub async fn get_navigation_status(&self, ship_symbol: &String) -> anyhow::Result<()> {
+        let res = self._get_navigation_status(ship_symbol).await.context("Failed to get Navigation Status for ship {ship_symbol}")?;
+        self.st.display_results_as_table(vec![res]);
+        Ok(())
     }
 
     pub async fn set_flight_mode(&self, ship_symbol: &String) -> anyhow::Result<()> {
@@ -327,6 +330,7 @@ impl ShipService {
     }
 
     async fn _navigate_to(&self, ship_symbol: &String, waypoint_symbol: &String) -> anyhow::Result<NavigateWaypointDataEnvelopeDTO> {
+        // TODO: This should check if we're currently docked, then move to orbit, then perform the navigate-to action
         let agent = self._get_agent_symbol_by_ship_symbol(ship_symbol);
         let agent_token = self.agent_svc.get_token_by_agent_symbol(&agent).await?;
         let result = self.navigator.navigate_to_waypoint(&agent_token, ship_symbol, waypoint_symbol).await?;
