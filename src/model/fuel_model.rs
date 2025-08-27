@@ -3,7 +3,7 @@ use anyhow::{Result, anyhow, ensure};
 use crate::dto::responses::fleet_dto::{FuelDTO};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Fuel {
     pub current: u32,
     pub capacity: u32,

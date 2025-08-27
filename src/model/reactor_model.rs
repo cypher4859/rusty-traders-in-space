@@ -6,7 +6,7 @@ use crate::{helpers::enum_lookups::ReactorSymbol, dto::responses::fleet_dto::{Re
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Reactor {
     pub reactor_symbol: ReactorSymbol,
     pub name:   String,
@@ -56,7 +56,7 @@ impl TryFrom<ReactorDTO> for Reactor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ReactorRequirements {
     pub power: Option<i32>,
     pub crew: i32,

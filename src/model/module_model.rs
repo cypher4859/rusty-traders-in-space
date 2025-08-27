@@ -6,7 +6,7 @@ use crate::{helpers::enum_lookups::ModuleSymbol, dto::responses::fleet_dto::{Mod
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ModuleRequirements {
     pub power: Option<i32>,
     pub crew: i32,
@@ -36,7 +36,7 @@ impl TryFrom<ModuleRequirementsDTO> for ModuleRequirements {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Module {
     pub module_symbol: ModuleSymbol,
     pub name:   String,

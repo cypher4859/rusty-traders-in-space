@@ -87,7 +87,8 @@ impl ShipService {
             let mut ship = self._get_ship(&ship_name).await?;
             ships.push(ship.clone());
         }
-        self.st.display_results_as_table(ships);
+        // self.st.display_db_results_as_table(ships);
+        self.st.display_db_result(ships);
         Ok(())
     }
 
@@ -129,7 +130,7 @@ impl ShipService {
 
     pub async fn get_navigation_status(&self, ship_symbol: &String) -> anyhow::Result<()> {
         let res = self._get_navigation_status(ship_symbol).await.context("Failed to get Navigation Status for ship {ship_symbol}")?;
-        self.st.display_results_as_table(vec![res]);
+        self.st.display_db_results_as_table(vec![res]);
         Ok(())
     }
 

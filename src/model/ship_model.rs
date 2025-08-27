@@ -23,7 +23,7 @@ use super::{
 };
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Ship {
     pub symbol: String,
     pub registration: Registration,
@@ -127,7 +127,7 @@ impl TableRow for Ship {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Registration {
     pub name: String,
     pub faction_symbol: FactionSymbol,

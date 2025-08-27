@@ -8,7 +8,7 @@ use crate::{helpers::enum_lookups::EngineSymbol, dto::responses::fleet_dto::{Eng
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct EngineRequirements {
     pub power: i32,
     pub crew: i32,
@@ -37,7 +37,7 @@ impl TryFrom<EngineRequirementsDTO> for EngineRequirements {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Engine {
     pub engine_symbol: EngineSymbol,
     pub name:   String,

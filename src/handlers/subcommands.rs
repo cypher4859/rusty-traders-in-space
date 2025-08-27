@@ -51,10 +51,15 @@ pub mod declarations {
         /// Show agents
         Agents {
             #[arg(short, long, required = false)]
-            name: Option<String>
+            name: Option<String>,
+            #[arg(short, long, action = clap::ArgAction::SetTrue)]
+            show_secrets: bool
         },
         /// Show currently selected agent
-        CurrentAgent,
+        CurrentAgent {
+            #[arg(short, long, action = clap::ArgAction::SetTrue)]
+            show_secrets: bool
+        },
         /// Show all factions
         Factions {
             #[arg(short, long, required = false)]
@@ -135,18 +140,25 @@ pub mod declarations {
             agent_id: String
         },
         /// Deactivate the currently selected agent
-        Deactivate,
+        Deactivate {
+            #[arg(short, long, action = clap::ArgAction::SetTrue)]
+            show_secrets: bool
+        },
         Show {
             #[arg(short, long, required = false)]
             agent_id: Option<String>,
             #[arg(short, long, action = clap::ArgAction::SetTrue)]
-            mine: bool
+            mine: bool,
+            #[arg(short, long, action = clap::ArgAction::SetTrue)]
+            show_secrets: bool
 
         },
         /// Search for an agent
         Search {
             #[arg(short, long)]
-            symbol: Option<String>
+            symbol: Option<String>,
+            #[arg(short, long, action = clap::ArgAction::SetTrue)]
+            show_secrets: bool
         },
         /// In-progress
         Delete {
@@ -549,8 +561,8 @@ pub mod definitions {
             ShowCmd::Waypoints { system, waypoint_type } => {system_svc.list_waypoints_by_system(system).await?;},
             ShowCmd::Waypoint { waypoint } => {system_svc.get_waypoint(waypoint).await?;},
             ShowCmd::Contracts { agent } => {contract_svc.show_current_contracts(agent).await?;},
-            ShowCmd::Agents { name } => {agent_svc.list_agents(name).await?;},
-            ShowCmd::CurrentAgent => {agent_svc.find_agent(&None, &true).await?;},
+            ShowCmd::Agents { name, show_secrets } => {agent_svc.list_agents(name, show_secrets).await?;},
+            ShowCmd::CurrentAgent { show_secrets } => {agent_svc.find_agent(&None, &true, show_secrets).await?;},
             ShowCmd::Factions { name } => {faction_svc.show_factions(name).await?;},
             ShowCmd::Ships { agent } => {
                 ship_svc.show_ships(agent).await?;
@@ -603,10 +615,10 @@ pub mod definitions {
         match target {
             AgentCmd::Sync => agent_svc.sync_db_agents_with_api(true).await?,
             AgentCmd::Activate { agent_id } => agent_svc.activate_agent(agent_id).await?,
-            AgentCmd::Deactivate => agent_svc.deactivate_agent()?,
+            AgentCmd::Deactivate { show_secrets } => agent_svc.deactivate_agent(show_secrets)?,
             AgentCmd::Delete { agent_id} => agent_svc.delete_agent(agent_id).await,
-            AgentCmd::Show { agent_id, mine} => agent_svc.find_agent(agent_id, mine).await?,
-            AgentCmd::Search { symbol} => agent_svc.list_agents(symbol).await?,
+            AgentCmd::Show { agent_id, mine, show_secrets} => agent_svc.find_agent(agent_id, mine, show_secrets).await?,
+            AgentCmd::Search { symbol, show_secrets} => agent_svc.list_agents(symbol, show_secrets).await?,
             AgentCmd::New { symbol, faction, email} => agent_svc.register_new_agent(symbol, faction, email).await?
         }
         Ok(())

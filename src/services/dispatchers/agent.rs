@@ -57,7 +57,7 @@ impl AgentService {
                 self.st.save_to_db(&the_agent, |a: &Agent| a.symbol.clone());
             }
     
-            self.st.display_results_as_table(vec![the_agent]);
+            self.st.display_db_results_as_table(vec![the_agent]);
             Ok(())
         } else {
             bail!("No agent was found with that ID");
@@ -75,11 +75,11 @@ impl AgentService {
         Ok(())
     }
     
-    pub fn deactivate_agent(&self) -> anyhow::Result<()> {
+    pub fn deactivate_agent(&self, show_secrets: &bool) -> anyhow::Result<()> {
         // let agent: Agent = self._get_current_selected_agent().await?;
         println!("Handling - Deactivating agent");
         self._deactivate_all_agents();
-        self._list_all_agents_from_db(false);
+        self._list_all_agents_from_db(false, show_secrets);
         Ok(())
     }
 
@@ -91,6 +91,7 @@ impl AgentService {
         &self,
         agent_id: &Option<String>,
         mine:     &bool,
+        show_secrets: &bool
     ) -> anyhow::Result<()> {
         // Treat “mine: None” as false for simpler pattern-matching
         match (agent_id, mine) {
@@ -101,7 +102,7 @@ impl AgentService {
     
             // 2. mine == true, no agent_id        → show *all* my agents
             (None, true) => {
-                self._list_all_agents_from_db(false);
+                self._list_all_agents_from_db(false, show_secrets);
                 // let agent_token = self._get_current_selected_agent_token().await?;
                 // self._find_agent_by_token(&agent_token).await?;
             }
@@ -134,7 +135,7 @@ impl AgentService {
     }
 
     // TODO: This is just wrong, list_agents should return a Vec of Agents
-    pub async fn list_agents(&self, symbol: &Option<String>) -> anyhow::Result<()> {
+    pub async fn list_agents(&self, symbol: &Option<String>, show_secrets: &bool) -> anyhow::Result<()> {
         match symbol {
             // ① a specific symbol was supplied → get just that agent
             Some(sym) => {
@@ -143,7 +144,7 @@ impl AgentService {
     
             // ② no symbol → list them all
             None => {
-                let agents = self._list_all_agents_from_db(false);
+                let agents = self._list_all_agents_from_db(false, show_secrets);
             }
         }
 
@@ -163,6 +164,10 @@ impl AgentService {
     }
 
     pub async fn sync_db_agents_with_api(&self, display_results: bool) -> anyhow::Result<()> {
+        self._sync_db_agents_with_api(display_results).await
+    }
+
+    async fn _sync_db_agents_with_api(&self, display_results: bool) -> anyhow::Result<()> {
         let filter = format!("WHERE json_extract(json,'$.is_archived') = 0");
         let results = self.st.get_table_from_db::<Agent, Vec<&str>>(Some(filter.as_str()), vec![])?;
         let mut output: Vec<Agent> = Vec::<Agent>::new();
@@ -180,7 +185,7 @@ impl AgentService {
         }
 
         println!("Successfully Synced our agents with the API\nThe following Agent was ARCHIVED!");
-        self.st.display_results_as_table(output);
+        self.st.display_db_results_as_table(output);
         // 1. Loop over agents in the db
         // 2. Get agent details of each agent from the API
         // 3. If token is bad then set the agent's "archived" attribute in the DB to true
@@ -191,7 +196,7 @@ impl AgentService {
     {
         let agent_model = self._save_agent_to_db(agent)?;
         if (display_results) {
-            self.st.display_results_as_table(vec![agent_model]);
+            self.st.display_db_results_as_table(vec![agent_model]);
         }
         Ok(())
     }
@@ -269,7 +274,8 @@ impl AgentService {
         Ok(())
     }
 
-    fn _list_all_agents_from_db(&self, include_archived_entries: bool) -> anyhow::Result<()> {
+    fn _list_all_agents_from_db(&self, include_archived_entries: bool, show_secrets: &bool) -> anyhow::Result<()> {
+        self._sync_db_agents_with_api(false);
         // This feels nasty but whatever
         let include_flag = match include_archived_entries {
             true => {
@@ -280,7 +286,7 @@ impl AgentService {
             }
         };
         let filter = format!("WHERE json_extract(json,'$.is_archived') = {}", include_flag.to_string());
-        if let Err(e) = self.st.dump_table_from_tb::<Agent, Vec<&str>>(Some(filter.as_str()), vec![]) {
+        if let Err(e) = self.st.dump_table_from_db::<Agent, Vec<&str>>(Some(filter.as_str()), vec![], show_secrets) {
             eprintln!("DB dump failed: {e:#}");
         }
 

@@ -80,7 +80,7 @@ impl ContractService {
         let result = self.st.get_with_headers::<ContractEnvelopeDTO>(&endpoint, Some(hdr), false).await?;
         match (result) {
             Some(contract) => {
-                self.st.display_results_as_table(vec![contract]);
+                self.st.display_db_results_as_table(vec![contract]);
                 Ok(())
             },
             None => {

@@ -3,7 +3,7 @@ use anyhow::{Result, anyhow, ensure};
 use crate::dto::responses::fleet_dto::{CargoDTO};
 use super::{InventoryItem};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Cargo {
     pub capacity: Option<u32>,
     pub units:    Option<u32>,

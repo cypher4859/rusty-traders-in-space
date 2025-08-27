@@ -70,7 +70,7 @@ impl FactionService {
         match(result) {
             Some(faction_dtos) => {
                 let items = faction_dtos.into_iter().map(Faction::try_from).collect::<anyhow::Result<Vec<_>>>()?;
-                self.st.display_results_as_table(items);
+                self.st.display_db_results_as_table(items);
                 Ok(())
             },
             None => {

@@ -4,7 +4,7 @@ use anyhow::{Result, anyhow, ensure};
 use strum_macros::{EnumIter, EnumString};
 use crate::{helpers::enum_lookups::InventoryItemSymbol, dto::responses::inventory_dto::InventoryItemDTO};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct InventoryItem {
     pub item_symbol: InventoryItemSymbol,
     pub name: String,

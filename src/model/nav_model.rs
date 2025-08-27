@@ -6,7 +6,7 @@ use crate::{helpers::enum_lookups::WaypointType, dto::responses::nav_dto::{NavDT
 
 use super::{ShipStatus, ShipFlightMode};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Nav {
     pub system_symbol: String,
     pub waypoint_symbol: String,
@@ -53,7 +53,7 @@ impl TryFrom<NavDTO> for Nav {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct NavRoute {
     pub destination: NavRouteLocation,
     pub origin: NavRouteLocation,
@@ -98,7 +98,7 @@ impl TryFrom<NavRouteDTO> for NavRoute {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct NavRouteLocation {
     pub waypoint_symbol: String, //There are a shitload of these so not putting it into an enum
     pub waypoint_type: WaypointType,

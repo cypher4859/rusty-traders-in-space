@@ -1,3 +1,4 @@
+use crate::helpers::redact_helper::{redact_token, RedactableData};
 use crate::helpers::table_helpers::TableRow;
 use crate::services::dispatchers::contract;
 use crate::AgentDTO;
@@ -5,6 +6,7 @@ use crate::model::{Faction, Contract, Ship};
 use crate::{RegisterDataDTO, RegisterEnvelopeDTO};
 use anyhow::{Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
@@ -104,6 +106,26 @@ impl TableRow for Agent {
             self.ship_count.to_string(),
             self.account_id.clone()
         ]
+    }
+}
+
+impl RedactableData for Agent {
+    fn to_redacted_json(&self, show: &bool) -> Value {
+        serde_json::json!({
+            "name": self.symbol,
+            "hq": self.hq,
+            "faction": self.starting_faction,
+            "credits": self.credits.to_string(),
+            "ships": self.ship_count.to_string(),
+            "active": self.active.to_string(),
+            "is_archived": self.is_archived.to_string(),
+            "token": redact_token(&self.token, show),
+            "account": self.account_id
+        })
+    }
+
+    fn to_redacted_table_row(&self, show_secrets: &bool) -> Vec<String> {
+        self.to_row()
     }
 }
 

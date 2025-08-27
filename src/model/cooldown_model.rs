@@ -3,7 +3,7 @@ use anyhow::{Result, anyhow, ensure};
 use crate::dto::responses::fleet_dto::{CooldownDTO};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Cooldown {
     pub ship_symbol: String,
     pub total_seconds: u32,

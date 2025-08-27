@@ -6,7 +6,7 @@ use crate::{helpers::enum_lookups::MountSymbol, dto::responses::fleet_dto::{Moun
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MountRequirements {
     pub power: Option<i32>,
     pub crew: i32,
@@ -35,7 +35,7 @@ impl TryFrom<MountRequirementsDTO> for MountRequirements {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Mount {
     pub mount_symbol: MountSymbol,
     pub name:   String,

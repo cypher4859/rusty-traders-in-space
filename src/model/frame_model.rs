@@ -5,7 +5,7 @@ use anyhow::{Result, anyhow, ensure};
 use crate::{helpers::enum_lookups::FrameSymbol, dto::responses::fleet_dto::{FrameDTO, FrameRequirementsDTO}};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FrameRequirements {
     pub power: i32,
     pub crew: i32,
@@ -34,7 +34,7 @@ impl TryFrom<FrameRequirementsDTO> for FrameRequirements {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Frame {
     pub frame_symbol: FrameSymbol,
     pub name:   String,

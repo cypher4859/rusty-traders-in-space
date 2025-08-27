@@ -23,6 +23,7 @@ use crate::config::{Config, OutputMode};
 use crate::dto::responses::error_dto::{ErrorEnvelope};
 use crate::dto::responses::util_dto::PageEnvelopeDTO;
 use crate::helpers::table_helpers::TableRow;
+use crate::helpers::redact_helper::RedactableData;
 use crate::{Agent, RegisterDataDTO};
 
 
@@ -125,19 +126,23 @@ impl SpaceTradersService {
     /// * `filter_sql` – optional **SQL WHERE fragment** (without the leading
     ///   "WHERE").
     /// * `params`     – parameters for that filter.
-    pub fn dump_table_from_tb<T, P>(
+    pub fn dump_table_from_db<T, P>(
         &self,
         filter_sql: Option<&str>,
         params: P,
+        show_secrets: &bool
     ) -> Result<()>
     where
-        T: DeserializeOwned + Serialize + TableRow + Debug,
+        T: DeserializeOwned + Serialize + TableRow + Debug + RedactableData,
         P: IntoIterator,
         P::Item: ToSql,
     {
         let out = self.get_table_from_db::<T,P>(filter_sql, params);
 
-        self.display_results_as_table(out?);
+        match self.cfg.output_mode {
+            OutputMode::Table => self.display_db_results_as_table_and_redact(out?, show_secrets),
+            OutputMode::Json => self.display_db_results_as_json_and_redact(out?, show_secrets)
+        }
 
         Ok(())
     }
@@ -238,6 +243,16 @@ impl SpaceTradersService {
         }
     }
 
+    pub fn display_db_result<T>(&self, items: Vec<T>)
+    where 
+        T: Serialize + TableRow + Debug
+    {
+        match self.cfg.output_mode {
+            OutputMode::Json  => self.display_db_results_as_json(items),
+            OutputMode::Table => self.display_db_results_as_table(items),
+        }
+    }
+
     // pub fn save_agent_to_db(&self, agent: RegisterDataDTO) -> anyhow::Result<()>
     // {
     //     self.save_to_db::<RegisterDataDTO, String>(&self.db_connection, &agent, |a| a.agent.symbol.clone())
@@ -246,7 +261,7 @@ impl SpaceTradersService {
     /// Print an entire vector of models in table form.
     ///
     /// *If the vector is empty it prints a short notice instead of an empty table.*
-    pub fn display_results_as_table<T>(&self, items: Vec<T>)
+    pub fn display_db_results_as_table<T>(&self, items: Vec<T>)
     where
         T: Debug + TableRow,
     {
@@ -267,6 +282,51 @@ impl SpaceTradersService {
         }
 
         println!("{}", table);
+    }
+
+    pub fn display_db_results_as_json_and_redact<T>(&self, items: Vec<T>, show_secrets: &bool)
+    where 
+        T: RedactableData + Debug
+    {
+        if items.is_empty() {
+            println!("No data to show!");
+            return;
+        }
+
+        let payload: Vec<_> = items.iter()
+            .map(|it| it.to_redacted_json(show_secrets))
+            .collect();
+
+        println!("{}", serde_json::to_string_pretty(&payload)
+            .unwrap_or_else(|_| "<failed to serialize JSON>".into()));
+    }
+
+    pub fn display_db_results_as_table_and_redact<T>(&self, items: Vec<T>, show_secrets: &bool)
+    where 
+        T: RedactableData + Debug + TableRow
+    {
+        self.display_db_results_as_table(items);
+    }
+
+    pub fn display_db_results_as_json<T>(&self, items: Vec<T>)
+    where
+        T: Serialize + Debug,     // <- add Serialize
+    {
+        if items.is_empty() {
+            println!("No data to show!");
+            return;
+        }
+
+        match serde_json::to_string_pretty(&items) {
+            Ok(json) => println!("{}", json),
+            Err(e) => {
+                // Fallback: show a readable debug dump if JSON serialization fails
+                eprintln!("Failed to serialize results as JSON: {e:?}");
+                for (i, item) in items.iter().enumerate() {
+                    println!("#{}: {:#?}", i + 1, item);
+                }
+            }
+        }
     }
 
     fn _display_api_result_in_json<T>(&self, label: &str, outcome: &anyhow::Result<Option<T>>)
@@ -366,7 +426,7 @@ impl SpaceTradersService {
         if (display_result) {
             match &result {
                 Some(res) => {
-                    self.display_results_as_table(res.clone());
+                    self.display_db_results_as_table(res.clone());
                 },
                 None => {
                     bail!("Something hardcore messed up with get_with_heders_and_paging")
@@ -650,5 +710,4 @@ impl SpaceTradersService {
         let second = parts.next().unwrap();
         format!("{first}-{second}").clone()
     }
-
 }
